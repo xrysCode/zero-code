@@ -11,10 +11,24 @@ html,
   outline: 1px dashed rgb(187, 187, 187);
   min-height: 1.5em;
 }
+div.design-click-box {
+  outline: 3px solid rgb(139, 58, 58);
+  min-height: 1.5em;
+}
 /* --el-color-primary: #409eff; */
-.diag-inner {
+.drag-design-inner {
   background-color: var(--el-color-primary);
   color: #fff;
+}
+.drag-design-indicator {
+  position: absolute;
+  left: 0;
+  /* right: 0; */
+  width: 10px;
+  height: 4px;
+  background-color: var(--el-color-primary);
+  z-index: 2;
+  /* display: none; */
 }
 
 /* #app {

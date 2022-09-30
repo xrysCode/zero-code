@@ -1,4 +1,4 @@
-<script lang="ts">
+<script lang="tsx">
 import { defineComponent, h, resolveComponent } from "vue";
 import type { VNode } from "vue";
 import { useRenderStore } from "@/stores/render";
@@ -6,12 +6,48 @@ import type { ComDesc } from "@/design/comDesc";
 import { Layout, RangeEnum } from "@/design/comDesc";
 import { MsgDto, MsgType } from "./PostMeaagae";
 
+class DragInfo {
+  dropType: String;
+  constructor(dropType: String) {
+    this.dropType = dropType;
+  }
+}
+
+const dragInfo = new DragInfo("");
 const ondragover = (ev: DragEvent) => {
   console.log("接收到的事件", ev);
   ev.stopPropagation();
-  //   e.currentTarget.style
   const el = ev.currentTarget as Element;
-  el.classList.add("diag-inner");
+
+  //竖直方向线位置
+  const dropElPosition = el.getBoundingClientRect();
+  const interval = dropElPosition.bottom - dropElPosition.top;
+  const prevPoint = dropElPosition.top + interval * 0.25;
+  const nextPoint = dropElPosition.top + interval * 0.75;
+  const dropIndicatorElStyle = document.getElementById(
+    "drop-design-indicator"
+  )!.style;
+
+  if (ev.clientY < prevPoint) {
+    //clientY
+    dragInfo.dropType = "before";
+    dropIndicatorElStyle.top = `${dropElPosition.top - 2}px`;
+    dropIndicatorElStyle.left = `${dropElPosition.left}px`;
+    dropIndicatorElStyle.width = `${dropElPosition.width}px`;
+    dropIndicatorElStyle.removeProperty("display");
+    el.classList.remove("drag-design-inner");
+  } else if (ev.clientY > nextPoint) {
+    dragInfo.dropType = "after";
+    dropIndicatorElStyle.top = `${dropElPosition.top - 2}px`;
+    dropIndicatorElStyle.left = `${dropElPosition.left}px`;
+    dropIndicatorElStyle.width = `${dropElPosition.width}px`;
+    dropIndicatorElStyle.removeProperty("display");
+    el.classList.remove("drag-design-inner");
+  } else {
+    dragInfo.dropType = "inner";
+    dropIndicatorElStyle.display = "none";
+    el.classList.add("drag-design-inner");
+  }
 
   //   debugger;
 };
@@ -21,19 +57,41 @@ const ondragleave = (ev: DragEvent) => {
   //   e.currentTarget.style
   ev.stopPropagation();
   const el = ev.currentTarget as Element;
-  el.classList.remove("diag-inner");
-
+  el.classList.remove("drag-design-inner");
+  const dropIndicatorElStyle = document.getElementById(
+    "drop-design-indicator"
+  )!.style;
+  dropIndicatorElStyle.display = "none";
   //   debugger;
 };
 const ondrop = (ev: DragEvent) => {
   ev.stopPropagation();
   ev.preventDefault();
-  console.log("接收到的事件", ev);
+  console.log("接收到的事件", dragInfo, ev);
   //   e.currentTarget.style
   const el = ev.currentTarget as Element;
-  el.classList.remove("diag-inner");
-
+  el.classList.remove("drag-design-inner");
+  const dropIndicatorElStyle = document.getElementById(
+    "drop-design-indicator"
+  )!.style;
+  dropIndicatorElStyle.display = "none";
   //   debugger;
+};
+//.design-click-box
+let beforeClickElSet = new Set<Element>();
+const onclick = (ev: PointerEvent) => {
+  const el = ev.currentTarget as Element;
+  el.classList.add("design-click-box");
+
+  beforeClickElSet.forEach((beforeEl) => {
+    if (beforeEl != el) {
+      beforeEl.classList.remove("design-click-box");
+    }
+  });
+  beforeClickElSet.clear();
+  beforeClickElSet.add(el);
+
+  console.log(ev);
 };
 
 export default defineComponent({
@@ -58,7 +116,9 @@ export default defineComponent({
 
           beforeElSet.forEach((beforeEl) => {
             if (beforeEl != el) {
-              beforeEl.classList.remove("diag-inner");
+              const classList = beforeEl.classList;
+              classList.remove("drag-design-inner");
+              //   classList.remove("drag-design-indicator");
             }
           });
           if (beforeElSet.has(el)) {
@@ -100,6 +160,7 @@ export default defineComponent({
         attrs.ondragover = ondragover;
         attrs.ondragleave = ondragleave;
         attrs.ondrop = ondrop;
+        attrs.onclick = onclick;
       }
 
       return h(resolveComponent(data.componentTag), attrs, depthFun(data.list));
@@ -114,16 +175,15 @@ export default defineComponent({
         return singleRender(data);
       }
     }
-    // {
-    //   ondragover;
-    //   ondragleave;
-    //   ondrop;
-    // }
-    return h("div", { {
-      ondragover;
-      ondragleave;
-      ondrop;
-    } }, depthFun(store.renderData));
+    //   <div
+    //     id="drop-indicator"
+    //     class="el-tree__drop-indicator"
+    //     style="top: 120px; left: 42px; height: 6px; z-index: 5 display: none;"
+    //   ></div>
+    return [
+      <div id="drop-design-indicator" class="drag-design-indicator"></div>,
+      depthFun(store.renderData),
+    ];
   },
 });
 </script>
