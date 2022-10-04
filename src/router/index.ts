@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from "vue-router";
 import HomeView from "../views/HomeView.vue";
 import Designer from "@/design/Designer.vue";
-import Reaner from "@/design/Render.vue";
+import ShowRender from "@/design/ShowRender.vue";
 import LayoutWrapper from "@/design/comWrapper/LayoutWrapper.vue";
 
 const router = createRouter({
@@ -9,8 +9,8 @@ const router = createRouter({
   routes: [
     {
       path: "/",
-      name: "Reaner",
-      component: Reaner,
+      name: "ShowRender",
+      component: ShowRender,
     },
     {
       path: "/design",

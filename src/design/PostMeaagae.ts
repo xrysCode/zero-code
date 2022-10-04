@@ -1,6 +1,6 @@
 // interface HistoryState {
 // }
-import type { ComponentWrapper } from "./comDesc";
+import type { ComponentWrapper, EditConfig } from "./comDesc";
 
 export enum MsgType {
   dragover = "dragover",
@@ -10,16 +10,17 @@ export enum MsgType {
 }
 
 export class MsgDto {
-  type: MsgType;
+  operateType: MsgType; //操作类型
   position?: PositionMsgDto;
   editData?: ComponentWrapper;
+  editConfig?: EditConfig[];
 
   constructor(
-    type: MsgType,
+    operateType: MsgType,
     position?: PositionMsgDto,
     editData?: ComponentWrapper
   ) {
-    this.type = type;
+    this.operateType = operateType;
     this.position = position;
     this.editData = editData;
   }
@@ -35,6 +36,7 @@ export class PositionMsgDto {
   clientY: number;
   x: number;
   y: number;
+  // dataTransfer = new DataTransfer();
   constructor(ev: DragEvent, dOMRect: DOMRect) {
     //, componentType:string
     //   this.comType = componentType
@@ -66,35 +68,35 @@ export class PositionMsgDto {
 //   }
 // }
 
-export function startListener() {
-  //   debugger
-  window.onmessage = (event: MessageEvent) => {
-    console.log(event.data, typeof event.data, window);
-    if (!(event.data instanceof MsgDto)) {
-      return;
-    }
-    const msgDto = event.data as MsgDto;
-    switch (msgDto.type) {
-      case MsgType.dragover:
-        break;
-      case MsgType.drop:
-        break;
-      case MsgType.Edit:
-        break;
-    }
+// export function startListener() {
+//   //   debugger
+//   window.onmessage = (event: MessageEvent) => {
+//     console.log(event.data, typeof event.data, window);
+//     if (!(event.data instanceof MsgDto)) {
+//       return;
+//     }
+//     const msgDto = event.data as MsgDto;
+//     switch (msgDto.operateType) {
+//       case MsgType.dragover:
+//         break;
+//       case MsgType.drop:
+//         break;
+//       case MsgType.Edit:
+//         break;
+//     }
 
-    // document.elementFromPoint(a.x, a.y)
-    // document.dispatchEvent()
-    // debugger
-    console.log(event, window);
-  };
+//     // document.elementFromPoint(a.x, a.y)
+//     // document.dispatchEvent()
+//     // debugger
+//     console.log(event, window);
+//   };
 
-  //   window.addEventListener('message', (event: MessageEvent) => {
-  //     if (event.source === window) {
-  //       return
-  //     }
+//   window.addEventListener('message', (event: MessageEvent) => {
+//     if (event.source === window) {
+//       return
+//     }
 
-  //     // debugger
-  //     console.log(event, window)
-  //   })
-}
+//     // debugger
+//     console.log(event, window)
+//   })
+// }

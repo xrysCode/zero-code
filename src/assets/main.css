@@ -11,10 +11,21 @@ html,
   outline: 1px dashed rgb(187, 187, 187);
   min-height: 1.5em;
 }
+div.design-active-box {
+  outline: 3px solid var(--el-color-primary);
+}
 /* --el-color-primary: #409eff; */
-.diag-inner {
+.design-drop-inner {
   background-color: var(--el-color-primary);
   color: #fff;
+}
+.design-drop-indicator {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background-color: var(--el-color-primary);
+  /* display: none; */
 }
 
 /* #app {

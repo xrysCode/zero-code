@@ -1,8 +1,8 @@
 <template>
   <el-container style="height: 100%">
     <el-aside>
-      <el-tabs>
-        <el-tab-pane label="组件库" name="first">
+      <el-tabs v-model="activeTabName">
+        <el-tab-pane label="组件库" name="componentChoose">
           <el-collapse>
             <el-collapse-item title="基础组件" name="1">
               <ul>
@@ -86,23 +86,15 @@
             name="designPanelIframe"
             :src="designUrl"
           ></iframe>
-          <!-- display: none; -->
-          <div
-            id="drop-indicator"
-            class="el-tree__drop-indicator"
-            style="top: 120px; left: 42px; height: 6px; z-index: 5"
-          ></div>
         </div>
       </el-main>
     </el-container>
 
     <el-aside>
-      <el-tabs>
-        <el-tab-pane label="组件设置" name="first">
-          <layout-editer></layout-editer>
-        </el-tab-pane>
-        <el-tab-pane label="数据源" name="second">数据源</el-tab-pane>
-      </el-tabs>
+      <com-edit-wrapper
+        :componentData="data"
+        @updateEditData="updateEditData"
+      />
     </el-aside>
   </el-container>
 </template>
@@ -111,7 +103,9 @@ import { defineComponent } from "vue";
 import * as baseConfigData from "./comDesc";
 import { MsgDto, MsgType, PositionMsgDto } from "@/design/PostMeaagae";
 // import MenuWrapper from '@/design/comWrapper/MenuWrapper.vue'
-// import LayoutEditer from "./comWrapper/LayoutEditer.vue";
+import ComEditWrapper from "./comWrapper/ComEditWrapper.vue";
+import { ComponentWrapper, RangeEnum } from "./comDesc";
+import { cloneData } from "./drag";
 
 export default defineComponent({
   // 启用了类型推导
@@ -122,24 +116,64 @@ export default defineComponent({
     metadata: null,
     designUrl: { type: String, default: "http://localhost:5173/?iframe=true" },
   },
-  // components: { LayoutEditer },
+  components: { ComEditWrapper },
+
+  data() {
+    return {
+      // activeTabName: "componentConfig",
+      origin: "",
+      // type: "",
+      data: new ComponentWrapper("", RangeEnum.START),
+      messageEvent: null as MessageEvent | null,
+      // editData: {},
+    };
+  },
   mounted() {
-    // this.name // 类型：string | undefined
-    // this.id // 类型：number | string | undefined
-    // this.msg // 类型：string
-    // this.metadata // 类型：any
-    // this.$nextTick(() => {
-    //   const ifWin = (this.$el.querySelector('#designPanelIframe') as HTMLIFrameElement).contentWindow
-    //   // ifWin!.addEventListener('message', () => {
-    //   //   debugger
-    //   // }, false)
-    // })
+    const __this = this;
+    //接收消息
+    window.onmessage = (event: MessageEvent) => {
+      const msgDto = event.data as MsgDto;
+      // console.log(msgDto, typeof msgDto, window);
+      if (
+        !(
+          "operateType" in msgDto &&
+          "editData" in msgDto &&
+          "position" in msgDto
+        )
+      ) {
+        return;
+      }
+      __this.origin = event.origin;
+      __this.messageEvent = event;
+      // debugger;
+      switch (msgDto.operateType) {
+        case MsgType.dragover:
+          break;
+        case MsgType.drop:
+          break;
+        case MsgType.dragleave:
+          break;
+        case MsgType.Edit:
+          __this.data = msgDto.editData!;
+          // componentConfigData.editDesc =
+          //   ComponentDesc[`${msgDto!.editData!.type}Edit`]; //as EditConfig[];
+          break;
+      }
+    };
   },
   methods: {
+    updateEditData() {
+      // debugger;
+      this.messageEvent!.source!.postMessage(
+        new MsgDto(MsgType.Edit, undefined, cloneData(this.data)),
+        this.messageEvent!.origin
+      );
+    },
     test() {
       console.log(window.name);
     },
     dragstartHandler(ev: DragEvent, componentType: string) {
+      //application/json  text/plain
       ev.dataTransfer!.setData("text/plain", componentType);
       // ev.dataTransfer.dropEffect = 'move'
       this.$el.querySelector("#designPanel").style.zIndex = 1;
@@ -170,23 +204,31 @@ export default defineComponent({
       );
     },
     dropHandler(ev: DragEvent) {
-      //释放数据，并打开编辑框
       const componentType = ev.dataTransfer!.getData("text/plain") as string;
+      //加载设置数据
+      // this.data = baseConfigData[componentType] as ComponentWrapper;
+      const configData = baseConfigData[componentType] as ComponentWrapper;
+
+      //释放数据，并打开编辑框
+
       const el = this.$el.querySelector(
         "#designPanelIframe"
       ) as HTMLIFrameElement;
 
       const win = el.contentWindow;
       const evMeaagae = new PositionMsgDto(ev, el.getBoundingClientRect());
-      // "http://localhost:5173/?iframe=true"
       win!.postMessage(
-        new MsgDto(MsgType.drop, evMeaagae, baseConfigData[componentType]),
+        new MsgDto(MsgType.drop, evMeaagae, cloneData(configData)),
         this.designUrl
         // "http://localhost:5173"
       );
     },
     dragleaveHandler(ev: DragEvent) {
-      const evMeaagae = new PositionMsgDto(ev);
+      const el = this.$el.querySelector(
+        "#designPanelIframe"
+      ) as HTMLIFrameElement;
+
+      const evMeaagae = new PositionMsgDto(ev, el.getBoundingClientRect());
       const win = (
         this.$el.querySelector("#designPanelIframe") as HTMLIFrameElement
       ).contentWindow;
