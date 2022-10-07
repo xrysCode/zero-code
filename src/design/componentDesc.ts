@@ -6,6 +6,7 @@ export interface ComDesc {
   // name?: string; //名称
   rangeFlag: RangeEnum; //范围标识
 
+  text?: string;
   methods?: { [key: string]: string };
 
   _preNode?: ComDesc | ComponentWrapper;
@@ -13,10 +14,11 @@ export interface ComDesc {
 }
 // 回溯组件？
 export enum RangeEnum {
-  START = "start", //有框
-  INNER = "inner",
-  END = "end", //结束
-  DROP_SLOT = "drop_slot", //需要有进入的框,表示有子级
+  START = 1 << 0, //"start", //有框
+  INNER = 1 << 1, //"inner",
+  INNER_SOLT = 1 << 2, //"inner",
+  END = 1 << 3, //"end", //结束
+  DROP_SLOT = 1 << 4, //"drop_slot", //需要有进入的框,表示有子级
 }
 // interface MethodDesc{
 //   [key: string]: string
@@ -48,6 +50,12 @@ export class ComponentWrapper implements ComDesc {
     // }
   }
 }
+export const StartDesign = new ComponentWrapper(
+  "StartDesign",
+  RangeEnum.START | RangeEnum.DROP_SLOT,
+  0
+);
+StartDesign.attrs.style = { height: "100%" };
 
 export const Layout = new ComponentWrapper("Layout", RangeEnum.START, 0);
 Layout.list = [
@@ -157,3 +165,91 @@ export const LayoutEdit = [
 // {
 //   :
 // }
+
+export const Menu = new ComponentWrapper("Menu", RangeEnum.START, 0, "菜单");
+Menu.list = [
+  {
+    //config: {},
+    componentTag: "el-menu",
+    attrs: {
+      "default-active": 1,
+      mode: "horizontal",
+    },
+    rangeFlag: RangeEnum.INNER,
+    link: ++Menu.increment_cursor,
+    list: [
+      {
+        componentTag: "el-menu-item",
+        attrs: {
+          index: "/a",
+        },
+        text: "Processing Center",
+        rangeFlag: RangeEnum.END,
+        link: ++Menu.increment_cursor,
+        list: [],
+      },
+      {
+        componentTag: "el-sub-menu",
+        attrs: {
+          index: "2",
+        },
+        rangeFlag: RangeEnum.INNER,
+        link: ++Menu.increment_cursor,
+        list: [
+          {
+            componentTag: "template",
+            attrs: {
+              "#title": undefined,
+            },
+            text: "Workspace",
+            rangeFlag: RangeEnum.INNER_SOLT,
+            link: ++Menu.increment_cursor,
+            list: [],
+          },
+
+          {
+            componentTag: "el-menu-item",
+            attrs: {
+              index: "/a/a",
+            },
+            text: "item one",
+            rangeFlag: RangeEnum.END,
+            link: ++Menu.increment_cursor,
+            list: [],
+          },
+          {
+            componentTag: "el-menu-item",
+            attrs: {
+              index: "/a/b",
+            },
+            text: "item two",
+            rangeFlag: RangeEnum.END,
+            link: ++Menu.increment_cursor,
+            list: [],
+          },
+        ],
+      },
+      {
+        componentTag: "el-menu-item",
+        attrs: {
+          index: "/a/c",
+          disabled: undefined,
+        },
+        text: "Info",
+        rangeFlag: RangeEnum.END,
+        link: ++Menu.increment_cursor,
+        list: [],
+      },
+      {
+        componentTag: "el-menu-item",
+        attrs: {
+          index: "/a/d",
+        },
+        text: "Orders",
+        rangeFlag: RangeEnum.END,
+        link: ++Menu.increment_cursor,
+        list: [],
+      },
+    ],
+  },
+];

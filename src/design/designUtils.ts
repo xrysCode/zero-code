@@ -4,9 +4,9 @@ import {
   type ComponentWrapper,
   type ComDesc,
   RangeEnum,
-} from "@/design/comDesc";
+} from "@/design/componentDesc";
 import { useRenderStore } from "@/stores/render";
-import { MsgDto, MsgType } from "./PostMeaagae";
+import { MsgDto, MsgType } from "./postMeaagae";
 
 enum DropType {
   before = "before",
@@ -43,18 +43,36 @@ export const dragoverHandler = (
   dropComponentData: ComponentWrapper
 ) => {
   ev.stopPropagation();
+  if (dropComponentData == dropInfo.draggingNode) {
+    return;
+  }
+  ev.preventDefault();
   const el = ev.currentTarget as Element;
   const dropIndicatorStyle = document.getElementById(
     "design-drop-indicator"
   )!.style;
-
-  if (dropComponentData.rangeFlag == RangeEnum.DROP_SLOT) {
+  //是插槽，
+  if (dropComponentData.rangeFlag & RangeEnum.DROP_SLOT) {
+    //这里只有指示样式的不同，因为都是添加到最后一列
     dropInfo.dropType = DropType.inner;
-    el.classList.add("design-drop-inner");
-    dropIndicatorStyle.display = "none";
+    if (dropComponentData.list.length == 0) {
+      //无内容
+
+      el.classList.add("design-drop-inner");
+      dropIndicatorStyle.display = "none";
+    } else {
+      //且内部没有内容
+      const position = el.lastElementChild!.getBoundingClientRect();
+      dropIndicatorStyle.top = `${position.bottom - 2}px`;
+      el.classList.remove("design-drop-inner");
+      dropIndicatorStyle.removeProperty("display");
+      dropIndicatorStyle.left = `${position.left}px`;
+      dropIndicatorStyle.width = `${position.width}px`;
+    }
+
     return;
   }
-  //越过组件
+  //越过组件,在组件的前后插队
   const position = el.getBoundingClientRect();
   const splitPoint = position.top + (position.bottom - position.top) * 0.5;
   if (ev.clientY < splitPoint) {
@@ -102,13 +120,15 @@ export const dropHandler = (
     const ri = preDragNode.list.indexOf(dragNode);
     preDragNode.list.splice(ri, 1);
   }
+
+  if (dropInfo.dropType == DropType.inner) {
+    dropComponentData.list.push(dropInfo.draggingNode!);
+    return;
+  }
   //找打父级的存放集合
   const preDropList = dropInfo.dropNode._preNode!.list;
   const i = preDropList.indexOf(dropComponentData);
   switch (dropInfo.dropType) {
-    case DropType.inner:
-      dropComponentData.list.push(dropInfo.draggingNode!);
-      break;
     case DropType.before:
       preDropList.splice(i, 0, dragNode);
       break;

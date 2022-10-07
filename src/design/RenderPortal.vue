@@ -2,10 +2,15 @@
 import { defineComponent, h, resolveComponent } from "vue";
 import type { VNode } from "vue";
 import { useRenderStore } from "@/stores/render";
-import type { ComDesc } from "@/design/comDesc";
-import { Layout, RangeEnum, ComponentWrapper } from "@/design/comDesc";
-import * as DragHandler from "./drag";
-import { MsgDto, MsgType } from "./PostMeaagae";
+import type { ComDesc } from "@/design/componentDesc";
+import {
+  Layout,
+  RangeEnum,
+  ComponentWrapper,
+  StartDesign,
+} from "@/design/componentDesc";
+import * as DragHandler from "./designUtils";
+import { MsgDto, MsgType } from "./postMeaagae";
 import Render from "./RenderDesign.vue";
 
 export default defineComponent({
@@ -100,6 +105,10 @@ export default defineComponent({
 
   render() {
     const store = useRenderStore();
+    let startDesign = StartDesign;
+    if (store.renderData) {
+      startDesign = store.renderData;
+    }
 
     return [
       <div
@@ -107,7 +116,7 @@ export default defineComponent({
         class="design-drop-indicator"
         style="display: none"
       ></div>,
-      <Render renderData={store.renderData} />,
+      <Render renderData={startDesign} />,
     ];
   },
 });

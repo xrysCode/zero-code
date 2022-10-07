@@ -14,6 +14,7 @@
                   布局容器
                 </li>
                 <li><Menu />菜单</li>
+                <li><Grid />导航出口</li>
                 <li><Grid />栅格</li>
                 <li draggable="true"><Grid />表格</li>
                 <li>弹框窗口</li>
@@ -34,32 +35,10 @@
                   <el-icon><Grid /></el-icon>栅格
                 </li>
                 <li>表格</li>
-                <li>弹框窗口</li>
-
-                <li>输入框</li>
-                <li>文本输入框</li>
-                <li>单选项</li>
-                <li>下拉选项</li>
-                <li>按钮</li>
-                <li>按钮</li>
-                <li>页面文本</li>
-                <li>分隔线</li>
               </ul>
             </el-collapse-item>
-            <el-collapse-item title="数据展示组件" name="1">
-              <div>
-                Consistent with real life: in line with the process and logic of
-                real life, and comply with languages and habits that the users
-                are used to;
-              </div>
-            </el-collapse-item>
-            <el-collapse-item title="其他组件" name="1">
-              <div>
-                Consistent with real life: in line with the process and logic of
-                real life, and comply with languages and habits that the users
-                are used to;
-              </div>
-            </el-collapse-item>
+            <el-collapse-item title="数据展示组件" name="1"> </el-collapse-item>
+            <el-collapse-item title="其他组件" name="1"> </el-collapse-item>
           </el-collapse>
         </el-tab-pane>
 
@@ -100,12 +79,12 @@
 </template>
 <script lang="ts">
 import { defineComponent } from "vue";
-import * as baseConfigData from "./comDesc";
-import { MsgDto, MsgType, PositionMsgDto } from "@/design/PostMeaagae";
+import * as baseConfigData from "./componentDesc";
+import { MsgDto, MsgType, PositionMsgDto } from "@/design/postMeaagae";
 // import MenuWrapper from '@/design/comWrapper/MenuWrapper.vue'
 import ComEditWrapper from "./comWrapper/ComEditWrapper.vue";
-import { ComponentWrapper, RangeEnum } from "./comDesc";
-import { cloneData } from "./drag";
+import { ComponentWrapper, RangeEnum } from "./componentDesc";
+import { cloneData } from "./designUtils";
 
 export default defineComponent({
   // 启用了类型推导

@@ -54,15 +54,15 @@
 
 <script lang="ts" setup>
 import { onMounted, reactive, ref, watch, computed } from "vue";
-import { MsgDto, MsgType } from "../PostMeaagae";
+import { MsgDto, MsgType } from "../postMeaagae";
 // ComponentWrapper
 import {
   ComponentWrapper,
   RangeEnum,
   EditConfig,
   type ComDesc,
-} from "../comDesc";
-import * as ComponentDesc from "@/design/comDesc";
+} from "../componentDesc";
+import * as ComponentDesc from "@/design/componentDesc";
 // import { computed } from "@vue/reactivity";
 
 const props = defineProps({

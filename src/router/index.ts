@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from "vue-router";
 import HomeView from "../views/HomeView.vue";
 import Designer from "@/design/Designer.vue";
-import ShowRender from "@/design/ShowRender.vue";
+import RenderPortal from "@/design/RenderPortal.vue";
 import LayoutWrapper from "@/design/comWrapper/LayoutWrapper.vue";
 
 const router = createRouter({
@@ -9,8 +9,8 @@ const router = createRouter({
   routes: [
     {
       path: "/",
-      name: "ShowRender",
-      component: ShowRender,
+      name: "RenderPortal",
+      component: RenderPortal,
     },
     {
       path: "/design",

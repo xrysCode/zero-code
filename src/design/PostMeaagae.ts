@@ -1,6 +1,6 @@
 // interface HistoryState {
 // }
-import type { ComponentWrapper, EditConfig } from "./comDesc";
+import type { ComponentWrapper, EditConfig } from "./componentDesc";
 
 export enum MsgType {
   dragover = "dragover",
@@ -59,44 +59,3 @@ export class PositionMsgDto {
   //     console.log('--')
   //   }
 }
-
-//释放并编辑，传递初始化数据
-// export class EditMsgDto {
-//   data: ComDesc;
-//   constructor(data: ComDesc) {
-//     this.data = data;
-//   }
-// }
-
-// export function startListener() {
-//   //   debugger
-//   window.onmessage = (event: MessageEvent) => {
-//     console.log(event.data, typeof event.data, window);
-//     if (!(event.data instanceof MsgDto)) {
-//       return;
-//     }
-//     const msgDto = event.data as MsgDto;
-//     switch (msgDto.operateType) {
-//       case MsgType.dragover:
-//         break;
-//       case MsgType.drop:
-//         break;
-//       case MsgType.Edit:
-//         break;
-//     }
-
-//     // document.elementFromPoint(a.x, a.y)
-//     // document.dispatchEvent()
-//     // debugger
-//     console.log(event, window);
-//   };
-
-//   window.addEventListener('message', (event: MessageEvent) => {
-//     if (event.source === window) {
-//       return
-//     }
-
-//     // debugger
-//     console.log(event, window)
-//   })
-// }

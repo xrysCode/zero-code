@@ -41,10 +41,10 @@
 
 <script lang="ts" setup>
 import { onMounted, reactive, ref, watch } from "vue";
-import { type MsgDto, MsgType } from "../PostMeaagae";
+import { type MsgDto, MsgType } from "../postMeaagae";
 // ComponentWrapper
-import { ComponentWrapper, RangeEnum, EditConfig } from "../comDesc";
-import * as ComponentDesc from "@/design/comDesc";
+import { ComponentWrapper, RangeEnum, EditConfig } from "../componentDesc";
+import * as ComponentDesc from "@/design/componentDesc";
 
 const props = defineProps({
   data: { type: ComponentWrapper, required: true },
