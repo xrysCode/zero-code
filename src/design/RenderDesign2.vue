@@ -35,9 +35,21 @@ export default defineComponent({
     const selfCom = this.$.type;
     let isSelfFirst = true;
 
+    const methodCacheMap = new Map<string, string>();
+    function extractMethod(data: ComponentWrapper | ComDesc) {
+      if (data.rangeFlag & RangeEnum.START) {
+        const methodDesc = (data as ComponentWrapper).methodDesc;
+        for (const key in methodDesc) {
+          const funStr = methodDesc[key];
+          methodCacheMap.set(key, funStr);
+        }
+      }
+    }
+    // 使用字符串构建 但是闭包参数和解。
+
     function mixinAttrs(
       data: ComDesc | ComponentWrapper,
-      slotArgs?: object
+      slotArgs?: string
     ): any {
       const mixinAttrs = { ...data.attrs };
       if (data.rangeFlag & RangeEnum.DROP_SLOT) {
@@ -67,28 +79,20 @@ export default defineComponent({
       if (methods && methods.length > 0) {
         methods.forEach((m) => {
           mixinAttrs["on" + m.evenType] = (ev: Event) =>
-            methodCacheMap.get(m.refKey)!(slotArgs);
+            // $setup.handleClick(row) 如何闭包这个row
+            //
+            methodCacheMap.get(m.refKey)(slotArgs);
+          //这里如何传递？？？？？？？？？？？？？？
         });
       }
 
       return mixinAttrs;
     }
 
-    const methodCacheMap = new Map<string, Function>();
-    function extractMethod(data: ComponentWrapper | ComDesc) {
-      if (data.rangeFlag & RangeEnum.START) {
-        const methodDesc = (data as ComponentWrapper).methodDesc;
-        for (const key in methodDesc) {
-          const fun = methodDesc[key];
-          methodCacheMap.set(key, eval(fun));
-        }
-      }
-    }
-
     function singleDepthRender(
       data: ComDesc | ComponentWrapper,
       preData?: ComDesc | ComponentWrapper,
-      slotArgs?: object
+      slotArgs?: string
     ): VNode {
       //不是自己，且遇到下一次 使用自身渲染
       if (!isSelfFirst && data.rangeFlag === RangeEnum.START) {
@@ -105,20 +109,20 @@ export default defineComponent({
       data.list.map((item) => {
         if (item.rangeFlag == RangeEnum.INNER_SOLT) {
           for (const key in item.attrs) {
+            const v = item.attrs[key];
+            const slotArr = [];
+            //当前级的文本
+            const text = (data as ComDesc).text;
+            if (text) {
+              slotArr.push(text);
+            }
+            //所有的下级渲染
+            item.list.map((ic) => {
+              slotArr.push(singleDepthRender(ic, item, v));
+            });
             //去掉#
-            childSolts[key.substr(1)] = (slotArgs: object) => {
-              const slotArr = [];
-              //当前级的文本
-              const text = (data as ComDesc).text;
-              if (text) {
-                slotArr.push(text);
-              }
-              //所有的下级渲染
-              item.list.map((ic) => {
-                slotArr.push(singleDepthRender(ic, item, slotArgs));
-              });
-              return slotArr;
-            };
+            // childSolts[key.substr(1)] = (v) => slotArr;
+            childSolts[key.substr(1)] = eval(`${v} => slotArr`);
           }
           return;
         }

@@ -7,7 +7,7 @@ export interface ComDesc {
   rangeFlag: RangeEnum; //范围标识
 
   text?: string;
-  methods?: { [key: string]: string };
+  methods?: [{ evenType: string; refKey: string }]; //引用methodDesc
 
   _preNode?: ComDesc | ComponentWrapper;
   link?: number;
@@ -60,7 +60,31 @@ StartDesign.attrs.style = { height: "100%" };
 export const Layout = new ComponentWrapper("Layout", RangeEnum.START, 0);
 Layout.list = [
   {
-    //config: {},
+    componentTag: "el-row",
+    attrs: {
+      gutter: 1,
+      justify: "start",
+      align: "top",
+    },
+    rangeFlag: RangeEnum.INNER,
+    link: ++Layout.increment_cursor,
+    list: [
+      {
+        componentTag: "el-col",
+        attrs: {},
+        rangeFlag: RangeEnum.INNER,
+        link: ++Layout.increment_cursor,
+        list: [
+          new ComponentWrapper(
+            "Layout",
+            RangeEnum.DROP_SLOT,
+            ++Layout.increment_cursor
+          ),
+        ],
+      },
+    ],
+  },
+  {
     componentTag: "el-row",
     attrs: {
       gutter: 1,
@@ -108,32 +132,6 @@ Layout.list = [
       },
     ],
   },
-  {
-    componentTag: "el-row",
-    attrs: {
-      gutter: 1,
-      justify: "start",
-      align: "top",
-      // class: "design-box",
-    },
-    rangeFlag: RangeEnum.INNER,
-    link: ++Layout.increment_cursor,
-    list: [
-      {
-        componentTag: "el-col",
-        attrs: {},
-        rangeFlag: RangeEnum.INNER,
-        link: ++Layout.increment_cursor,
-        list: [
-          new ComponentWrapper(
-            "Layout",
-            RangeEnum.DROP_SLOT,
-            ++Layout.increment_cursor
-          ),
-        ],
-      },
-    ],
-  },
 ];
 
 export class EditConfig {
@@ -169,11 +167,11 @@ export const LayoutEdit = [
 export const Menu = new ComponentWrapper("Menu", RangeEnum.START, 0, "菜单");
 Menu.list = [
   {
-    //config: {},
     componentTag: "el-menu",
     attrs: {
       "default-active": 1,
       mode: "horizontal",
+      router: true,
     },
     rangeFlag: RangeEnum.INNER,
     link: ++Menu.increment_cursor,
@@ -181,7 +179,7 @@ Menu.list = [
       {
         componentTag: "el-menu-item",
         attrs: {
-          index: "/a",
+          index: "/test",
         },
         text: "Processing Center",
         rangeFlag: RangeEnum.END,
@@ -199,7 +197,7 @@ Menu.list = [
           {
             componentTag: "template",
             attrs: {
-              "#title": undefined,
+              "#title": null,
             },
             text: "Workspace",
             rangeFlag: RangeEnum.INNER_SOLT,
@@ -233,7 +231,7 @@ Menu.list = [
         componentTag: "el-menu-item",
         attrs: {
           index: "/a/c",
-          disabled: undefined,
+          disabled: "",
         },
         text: "Info",
         rangeFlag: RangeEnum.END,
@@ -253,3 +251,142 @@ Menu.list = [
     ],
   },
 ];
+
+export const Table = new ComponentWrapper("Table", RangeEnum.START, 0, "表格");
+Table.defaultData = [
+  {
+    date: "2016-05-03",
+    name: "Tom",
+    state: "California",
+    city: "Los Angeles",
+    address: "No. 189, Grove St, Los Angeles",
+    zip: "CA 90036",
+    tag: "Home",
+  },
+  {
+    date: "2016-05-02",
+    name: "Tom",
+    state: "California",
+    city: "Los Angeles",
+    address: "No. 189, Grove St, Los Angeles",
+    zip: "CA 90036",
+    tag: "Office",
+  },
+  {
+    date: "2016-05-04",
+    name: "Tom",
+    state: "California",
+    city: "Los Angeles",
+    address: "No. 189, Grove St, Los Angeles",
+    zip: "CA 90036",
+    tag: "Home",
+  },
+];
+Table.methodDesc = {
+  handleClick: `(row) => {
+     console.log("click",row)
+    }`,
+};
+Table.list = [
+  {
+    componentTag: "el-table",
+    attrs: {
+      data: Table.defaultData,
+    },
+    rangeFlag: RangeEnum.INNER,
+    link: ++Table.increment_cursor,
+
+    list: [
+      {
+        componentTag: "el-table-column",
+        attrs: {
+          fixed: "",
+          prop: "date",
+          label: "Date",
+          width: "250",
+        },
+        rangeFlag: RangeEnum.END,
+        link: ++Table.increment_cursor,
+        list: [],
+      },
+      {
+        componentTag: "el-table-column",
+        attrs: {
+          prop: "name",
+          label: "Name",
+          width: "200",
+        },
+        rangeFlag: RangeEnum.END,
+        link: ++Table.increment_cursor,
+        list: [],
+      },
+      {
+        componentTag: "el-table-column",
+        attrs: {
+          prop: "address",
+          label: "Address",
+          width: "600",
+        },
+        rangeFlag: RangeEnum.END,
+        link: ++Table.increment_cursor,
+        list: [],
+      },
+
+      {
+        componentTag: "el-table-column",
+        attrs: {
+          fixed: "right",
+          label: "Operations",
+          width: "120",
+        },
+        rangeFlag: RangeEnum.INNER,
+        link: ++Table.increment_cursor,
+        list: [
+          {
+            componentTag: "template",
+            attrs: {
+              //{ row, column, $index }
+              "#default": "row",
+            },
+            rangeFlag: RangeEnum.INNER_SOLT,
+            link: ++Menu.increment_cursor,
+            list: [
+              {
+                componentTag: "el-button",
+                attrs: {
+                  link: "",
+                  type: "primary",
+                  size: "small",
+                },
+                text: "Detail",
+                methods: [{ evenType: "click", refKey: "handleClick" }],
+                rangeFlag: RangeEnum.END,
+                link: ++Table.increment_cursor,
+                list: [],
+              },
+              {
+                componentTag: "el-button",
+                attrs: {
+                  link: "",
+                  type: "primary",
+                  size: "small",
+                },
+                text: "Edit",
+                rangeFlag: RangeEnum.END,
+                link: ++Table.increment_cursor,
+                list: [],
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+];
+
+export const RouterView = new ComponentWrapper(
+  "RouterView",
+  RangeEnum.START | RangeEnum.END,
+  0,
+  "路由出口"
+);

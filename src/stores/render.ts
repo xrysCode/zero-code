@@ -6,12 +6,13 @@ import {
   StartDesign,
   ComponentWrapper,
   Menu,
+  Table,
 } from "@/design/componentDesc";
 
 export const useRenderStore = defineStore("render", () => {
   // const renderArr:Array<ComDesc> = ref([]);
 
-  const data = Menu;
+  const data = StartDesign;
   const renderData = ref(data);
   // const activeComponent = reactive({
   //   //多个值，要找到元值  记录原来的位置

@@ -13,10 +13,28 @@
                 >
                   布局容器
                 </li>
-                <li><Menu />菜单</li>
-                <li><Grid />导航出口</li>
+                <li
+                  draggable="true"
+                  @dragstart="dragstartHandler($event, 'Menu')"
+                  @dragend="dragendHandler($event, 'Menu')"
+                >
+                  <Menu />菜单
+                </li>
+                <li
+                  draggable="true"
+                  @dragstart="dragstartHandler($event, 'RouterView')"
+                  @dragend="dragendHandler($event, 'RouterView')"
+                >
+                  <Grid />导航出口
+                </li>
                 <li><Grid />栅格</li>
-                <li draggable="true"><Grid />表格</li>
+                <li
+                  draggable="true"
+                  @dragstart="dragstartHandler($event, 'Table')"
+                  @dragend="dragendHandler($event, 'Table')"
+                >
+                  <Grid />表格
+                </li>
                 <li>弹框窗口</li>
 
                 <li>输入框</li>

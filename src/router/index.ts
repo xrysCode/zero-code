@@ -20,7 +20,7 @@ const router = createRouter({
     {
       path: "/test",
       name: "test",
-      component: () => import("@/design/comWrapper/LayoutEditer.vue"),
+      component: () => import("@/design/comWrapper/Test.vue"),
     },
     {
       path: "/about",
