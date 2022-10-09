@@ -8,9 +8,16 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
-      path: "/",
+      path: "/rander",
       name: "RenderPortal",
       component: RenderPortal,
+      children: [
+        {
+          path: "inner",
+          // name: "inner",
+          component: () => import("@/design/comWrapper/TableWrapper.vue"),
+        },
+      ],
     },
     {
       path: "/design",

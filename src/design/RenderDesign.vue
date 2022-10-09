@@ -41,7 +41,7 @@ export default defineComponent({
     ): any {
       const mixinAttrs = { ...data.attrs };
       if (data.rangeFlag & RangeEnum.DROP_SLOT) {
-        mixinAttrs.class = ["design-box"];
+        mixinAttrs.class = ["design-slot-box"];
         mixinAttrs.ondragover = (ev: DragEvent) =>
           DragHandler.dragoverHandler(ev, data as ComponentWrapper);
         mixinAttrs.ondragleave = (ev: DragEvent) =>
@@ -49,7 +49,7 @@ export default defineComponent({
         mixinAttrs.ondrop = (ev: DragEvent) =>
           DragHandler.dropHandler(ev, data as ComponentWrapper); //任何数据释放后都选中这个框，触发点击选中
       }
-      if (data.rangeFlag == RangeEnum.START) {
+      if (data.rangeFlag & RangeEnum.START) {
         mixinAttrs.class = ["design-box"];
         mixinAttrs.draggable = true;
         mixinAttrs.ondragstart = (ev: DragEvent) =>

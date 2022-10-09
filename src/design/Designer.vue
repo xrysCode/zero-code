@@ -111,7 +111,10 @@ export default defineComponent({
     id: [Number, String],
     msg: { type: String, required: true },
     metadata: null,
-    designUrl: { type: String, default: "http://localhost:5173/?iframe=true" },
+    designUrl: {
+      type: String,
+      default: "http://localhost:5173/rander",
+    },
   },
   components: { ComEditWrapper },
 

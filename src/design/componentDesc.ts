@@ -179,7 +179,7 @@ Menu.list = [
       {
         componentTag: "el-menu-item",
         attrs: {
-          index: "/test",
+          index: "/rander/inner",
         },
         text: "Processing Center",
         rangeFlag: RangeEnum.END,
@@ -390,3 +390,4 @@ export const RouterView = new ComponentWrapper(
   0,
   "路由出口"
 );
+RouterView.attrs.style = { border: "1px solid red", height: "100%" };

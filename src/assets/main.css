@@ -14,6 +14,7 @@ html,
 .design-slot-box {
   outline: 1px dashed rgb(155, 88, 88);
   min-height: 1.5em;
+  height: 100%;
 }
 div.design-active-box {
   outline: 3px solid var(--el-color-primary);
