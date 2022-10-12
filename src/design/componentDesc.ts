@@ -1,3 +1,5 @@
+import type { list } from "postcss";
+
 //组合组件和插槽都用div包裹。以便产生线框
 export interface ComDesc {
   componentTag: string;
@@ -56,6 +58,24 @@ export const StartDesign = new ComponentWrapper(
   0
 );
 StartDesign.attrs.style = { height: "100%" };
+export const RouterView = new ComponentWrapper(
+  "RouterView",
+  RangeEnum.START | RangeEnum.END,
+  0,
+  "路由出口"
+);
+RouterView.attrs.style = { border: "1px solid red", height: "100%" };
+RouterView.list = [
+  {
+    componentTag: "RouterView",
+    attrs: {
+      name: "default",
+      // route: undif
+    },
+    rangeFlag: RangeEnum.END,
+    link: ++RouterView.increment_cursor,
+  },
+];
 
 export const Layout = new ComponentWrapper("Layout", RangeEnum.START, 0);
 Layout.list = [
@@ -133,6 +153,7 @@ Layout.list = [
     ],
   },
 ];
+// Layout.list[1].list[0].list[0].list.push(RouterView);
 
 export class EditConfig {
   type: string;
@@ -159,11 +180,6 @@ export const LayoutEdit = [
   // new EditConfig("","","",""),
 ];
 
-// export class Layout
-// {
-//   :
-// }
-
 export const Menu = new ComponentWrapper("Menu", RangeEnum.START, 0, "菜单");
 Menu.list = [
   {
@@ -179,7 +195,7 @@ Menu.list = [
       {
         componentTag: "el-menu-item",
         attrs: {
-          index: "/rander/inner",
+          index: "/render/inner",
         },
         text: "Processing Center",
         rangeFlag: RangeEnum.END,
@@ -383,11 +399,3 @@ Table.list = [
     ],
   },
 ];
-
-export const RouterView = new ComponentWrapper(
-  "RouterView",
-  RangeEnum.START | RangeEnum.END,
-  0,
-  "路由出口"
-);
-RouterView.attrs.style = { border: "1px solid red", height: "100%" };

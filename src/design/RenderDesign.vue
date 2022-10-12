@@ -91,7 +91,7 @@ export default defineComponent({
       slotArgs?: object
     ): VNode {
       //不是自己，且遇到下一次 使用自身渲染
-      if (!isSelfFirst && data.rangeFlag === RangeEnum.START) {
+      if (!isSelfFirst && data.rangeFlag & RangeEnum.START) {
         return h(selfCom, { renderData: data, preData: preData });
       }
       data._preNode = preData;
@@ -102,29 +102,32 @@ export default defineComponent({
       const childSolts = {} as { [name: string]: any }; // { [key: string]: Function };
 
       const defaultSlots = [] as VNode[];
-      data.list.map((item) => {
-        if (item.rangeFlag == RangeEnum.INNER_SOLT) {
-          for (const key in item.attrs) {
-            //去掉#
-            childSolts[key.substr(1)] = (slotArgs: object) => {
-              const slotArr = [];
-              //当前级的文本
-              const text = (data as ComDesc).text;
-              if (text) {
-                slotArr.push(text);
-              }
-              //所有的下级渲染
-              item.list.map((ic) => {
-                slotArr.push(singleDepthRender(ic, item, slotArgs));
-              });
-              return slotArr;
-            };
+      if (data.list) {
+        data.list.map((item) => {
+          if (item.rangeFlag == RangeEnum.INNER_SOLT) {
+            for (const key in item.attrs) {
+              //去掉#
+              childSolts[key.substr(1)] = (slotArgs: object) => {
+                const slotArr = [];
+                //当前级的文本
+                const text = (data as ComDesc).text;
+                if (text) {
+                  slotArr.push(text);
+                }
+                //所有的下级渲染
+                item.list.map((ic) => {
+                  slotArr.push(singleDepthRender(ic, item, slotArgs));
+                });
+                return slotArr;
+              };
+            }
+            return;
           }
-          return;
-        }
-        //其他都是默认放入
-        defaultSlots.push(singleDepthRender(item, data));
-      });
+          //其他都是默认放入
+          defaultSlots.push(singleDepthRender(item, data));
+        });
+      }
+
       const text = (data as ComDesc).text;
       if (text) {
         defaultSlots.push(_createTextVNode(text));

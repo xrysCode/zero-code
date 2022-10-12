@@ -51,11 +51,5 @@ export class PositionMsgDto {
     // dataTransfer: ev.dataTransfer,
     this.x = ev.x - dOMRect.x;
     this.y = ev.y - dOMRect.y;
-    //   fun: () => {
-    //     console.log('--')
-    //   }
   }
-  //   fun: () => {
-  //     console.log('--')
-  //   }
 }

@@ -27,8 +27,6 @@ export default defineComponent({
     let beforeElSet = new Set<Element>();
     window.onmessage = (event: MessageEvent) => {
       const msgDto = event.data as MsgDto;
-      console.log(msgDto, typeof msgDto, window);
-      // debugger;
       if (
         !(
           "operateType" in msgDto &&
@@ -73,13 +71,9 @@ export default defineComponent({
             ...msgDto.position,
             dataTransfer: new DataTransfer(),
           });
-          // dropEv.dataTransfer=new DataTransfer()
-          DragHandler.dragstartHandler(dropEv, msgDto.editData!);
+          //后置填充开始的数据，然后由事件触发结束，执行默认拖动结束
+          DragHandler.dragstartHandler(dropEv, msgDto.editData!, true);
           el.dispatchEvent(dropEv);
-
-          // const dragEv = new DragEvent("drop", msgDto.position);
-          // dragEv.dataTransfer = el!.dispatchEvent();
-
           break;
         case MsgType.dragleave:
           beforeElSet.forEach((beforeEl) => {
@@ -93,30 +87,31 @@ export default defineComponent({
           //更新数据
           // eslint-disable-next-line no-case-declarations
           const newData = DragHandler.recoverData(msgDto.editData!);
-          console.log(newData);
+          console.log("编辑的数据消息", newData);
           // store.recoverData(msgDto.editData!);
           break;
       }
-
-      // debugger
-      console.log(event, window);
     };
   },
 
   render() {
     const store = useRenderStore();
-    let startDesign = StartDesign;
-    if (store.renderData) {
-      startDesign = store.renderData;
-    }
-
+    store.$subscribe(
+      (mutation, state) => {
+        localStorage.setItem(
+          "renderData",
+          DragHandler.object2Str(state.renderData)
+        );
+      },
+      { deep: true }
+    );
     return [
       <div
         id="design-drop-indicator"
         class="design-drop-indicator"
         style="display: none"
       ></div>,
-      <Render renderData={startDesign} />,
+      <Render renderData={store.renderData} />,
     ];
   },
 });

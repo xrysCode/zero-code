@@ -113,14 +113,14 @@ export default defineComponent({
     metadata: null,
     designUrl: {
       type: String,
-      default: "http://localhost:5173/rander",
+      default: "http://localhost:5173/render",
     },
   },
   components: { ComEditWrapper },
 
   data() {
     return {
-      // activeTabName: "componentConfig",
+      activeTabName: "componentChoose",
       origin: "",
       // type: "",
       data: new ComponentWrapper("", RangeEnum.START),
@@ -133,7 +133,6 @@ export default defineComponent({
     //接收消息
     window.onmessage = (event: MessageEvent) => {
       const msgDto = event.data as MsgDto;
-      // console.log(msgDto, typeof msgDto, window);
       if (
         !(
           "operateType" in msgDto &&
@@ -155,8 +154,6 @@ export default defineComponent({
           break;
         case MsgType.Edit:
           __this.data = msgDto.editData!;
-          // componentConfigData.editDesc =
-          //   ComponentDesc[`${msgDto!.editData!.type}Edit`]; //as EditConfig[];
           break;
       }
     };
@@ -180,7 +177,6 @@ export default defineComponent({
       this.$el.querySelector("#designPanelIframe").style.zIndex = -1;
     },
     dragendHandler(ev: DragEvent, ty: string) {
-      // console.log("拖拽结束", ev);
       this.$el.querySelector("#designPanel").style.zIndex = -1;
       this.$el.querySelector("#designPanelIframe").style.zIndex = 1;
     },

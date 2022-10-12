@@ -27,10 +27,17 @@ export const dropInfo = new DropInfo(DropType.after);
 
 export const dragstartHandler = (
   ev: DragEvent,
-  draggingNode: ComponentWrapper
+  draggingNode: ComponentWrapper,
+  isMsgTrigger?: Boolean = false
 ) => {
   ev.dataTransfer!.setData("text", "");
   dropInfo.draggingNode = draggingNode;
+  dropInfo.dropNode = null;
+  if (!isMsgTrigger) {
+    dropInfo.dropType = null; //消息传递的时候不重置
+  }
+
+  console.log("开始拖拽", dropInfo, ev);
 };
 
 /*
@@ -51,13 +58,15 @@ export const dragoverHandler = (
   const dropIndicatorStyle = document.getElementById(
     "design-drop-indicator"
   )!.style;
-  //是插槽，
-  if (dropComponentData.rangeFlag & RangeEnum.DROP_SLOT) {
-    //这里只有指示样式的不同，因为都是添加到最后一列
-    dropInfo.dropType = DropType.inner;
-    if (dropComponentData.list.length == 0) {
-      //无内容
 
+  if (dropComponentData.rangeFlag & RangeEnum.DROP_SLOT) {
+    //插槽只会在里面，如果内部有组件，那么是触发内部的组件
+    dropInfo.dropType = DropType.inner;
+    el.classList.add("design-drop-inner");
+    dropIndicatorStyle.display = "none";
+    return;
+    /*if (dropComponentData.list.length == 0) {
+      //无内容
       el.classList.add("design-drop-inner");
       dropIndicatorStyle.display = "none";
     } else {
@@ -68,9 +77,7 @@ export const dragoverHandler = (
       dropIndicatorStyle.removeProperty("display");
       dropIndicatorStyle.left = `${position.left}px`;
       dropIndicatorStyle.width = `${position.width}px`;
-    }
-
-    return;
+    }*/
   }
   //越过组件,在组件的前后插队
   const position = el.getBoundingClientRect();
@@ -90,12 +97,8 @@ export const dragoverHandler = (
 };
 
 export const dragleaveHandler = (ev: DragEvent) => {
-  //   console.log("接收到的事件", e);
-  //   e.currentTarget.style
   ev.stopPropagation();
-
   (ev.currentTarget as Element).classList.remove("design-drop-inner");
-
   //   debugger;
 };
 //分几种情况，1、有的只能拖拽在里面：组件进入插槽，2、有的只能在上下：组件对应组件，3、满足即可上下也可内部的：组件对组件
@@ -112,7 +115,7 @@ export const dropHandler = (
 
   //组合数据
   dropInfo.dropNode = dropComponentData;
-  console.log("接收到的事件", dropInfo, ev);
+  console.log("结束拖拽", dropInfo, ev);
   //截断原来的数据 删除原来的位置的组件
   const dragNode = dropInfo.draggingNode!;
   const preDragNode = dragNode?._preNode;
@@ -156,7 +159,7 @@ export const clickHandler = (
   }
   el.classList.add("design-active-box");
   beforeClickEl = el;
-
+  // debugger;
   //推送数据
   //待优化，为何clone失败
   // const strMsg = copyFragmentData(headerData);
@@ -178,7 +181,7 @@ function copyFragmentData(
 ): ComponentWrapper | ComDesc {
   faultRecoverMap.set(component.link!, component);
   const copyData = { ...component };
-  if (copyData.list.length > 0) {
+  if (copyData.list && copyData.list.length > 0) {
     if (copyData.rangeFlag == RangeEnum.DROP_SLOT) {
       //截断
       copyData.list = [];
@@ -228,13 +231,15 @@ export function recoverData(
   return old;
 }
 
+export function object2Str(data: ant): string {
+  return JSON.stringify(data, (key, value) => {
+    if (key.startsWith("_")) {
+      return undefined;
+    }
+    return value;
+  });
+}
+
 export function cloneData<T>(data: T): T {
-  return JSON.parse(
-    JSON.stringify(data, (key, value) => {
-      if (key.startsWith("_")) {
-        return null;
-      }
-      return value;
-    })
-  );
+  return JSON.parse(object2Str(data));
 }

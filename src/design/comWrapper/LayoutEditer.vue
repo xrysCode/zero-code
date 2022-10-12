@@ -71,8 +71,4 @@ const form = reactive({
   resource: "",
   desc: "",
 });
-
-const onSubmit = () => {
-  console.log("submit!");
-};
 </script>
