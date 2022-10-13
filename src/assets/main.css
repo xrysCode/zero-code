@@ -9,15 +9,28 @@ html,
 
 .design-box {
   outline: 1px dashed rgb(187, 187, 187);
+  outline-offset: -1px;
+  position: relative;
   min-height: 1.5em;
 }
 .design-slot-box {
-  outline: 1px dashed rgb(155, 88, 88);
+  outline: -1px dashed rgb(155, 88, 88);
+  position: relative;
   min-height: 1.5em;
   height: 100%;
 }
 div.design-active-box {
   outline: 3px solid var(--el-color-primary);
+  outline-offset: -1px;
+  z-index: 10;
+}
+.design-view-action {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  height: 28px;
+  line-height: 28px;
+  background: var(--el-color-primary);
   z-index: 10;
 }
 /* --el-color-primary: #409eff; */

@@ -21,6 +21,7 @@ export enum RangeEnum {
   INNER_SOLT = 1 << 2, //"inner",
   END = 1 << 3, //"end", //结束
   DROP_SLOT = 1 << 4, //"drop_slot", //需要有进入的框,表示有子级
+  RouterView = 1 << 5, //上中下
 }
 // interface MethodDesc{
 //   [key: string]: string
@@ -46,10 +47,6 @@ export class ComponentWrapper implements ComDesc {
     this.rangeFlag = rangeFlag;
     this.name = name ? name : type;
     this.link = link;
-    // this.attrs = { class: "design-box" };
-    // if (rangeFlag === RangeEnum.DROP_SLOT || rangeFlag == RangeEnum.START) {
-    //   this.dragMethods = { ondragover: ondragoverStr };
-    // }
   }
 }
 export const StartDesign = new ComponentWrapper(
@@ -60,7 +57,7 @@ export const StartDesign = new ComponentWrapper(
 StartDesign.attrs.style = { height: "100%" };
 export const RouterView = new ComponentWrapper(
   "RouterView",
-  RangeEnum.START | RangeEnum.END,
+  RangeEnum.START | RangeEnum.DROP_SLOT,
   0,
   "路由出口"
 );

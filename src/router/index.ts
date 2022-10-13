@@ -2,7 +2,7 @@ import { createRouter, createWebHistory } from "vue-router";
 import HomeView from "../views/HomeView.vue";
 import Designer from "@/design/Designer.vue";
 import RenderPortal from "@/design/RenderPortal.vue";
-import LayoutWrapper from "@/design/comWrapper/LayoutWrapper.vue";
+import RenderDesign from "@/design/RenderDesign.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -17,7 +17,7 @@ const router = createRouter({
         //   component: RenderPortal,
         // },
         {
-          path: "inner",
+          path: "/inner",
           component: () => import("@/design/comWrapper/Test.vue"),
         },
       ],
@@ -46,6 +46,16 @@ const router = createRouter({
       component: () => import("../views/AboutView.vue"),
     },
   ],
+});
+
+router.beforeEach((to, from) => {
+  // debugger;
+  // if (!hasNecessaryRoute(to)) {
+  // const newRouter = { path: to.fullPath, component: RenderDesign, props: {renderData: JSON.parse(localStorage.getItem(""))} };
+  // router.addRoute(newRouter);
+  // 触发重定向
+  //   return to.fullPath;
+  // }
 });
 
 export default router;

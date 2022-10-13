@@ -153,6 +153,7 @@ export const clickHandler = (
   activeData: ComponentWrapper
 ) => {
   ev.stopPropagation();
+
   const el = ev.currentTarget as Element;
   if (beforeClickEl) {
     beforeClickEl.classList.remove("design-active-box");
@@ -176,6 +177,27 @@ export const clickHandler = (
   );
   // debugger;
 };
+
+export const deleteHandler = (
+  ev: PointerEvent | Event,
+  activeData: ComponentWrapper
+) => {
+  ev.stopPropagation();
+  const preDropList = activeData._preNode!.list;
+  const i = preDropList.indexOf(activeData);
+  preDropList.splice(i, 1);
+
+  const win = window.top;
+  win!.postMessage(
+    //将跨域的组件过滤掉
+    new MsgDto(MsgType.Edit, undefined, new ComponentWrapper()),
+    "*"
+    // win?.location.origin
+    // "http://localhost:5173"
+  );
+  // debugger;
+};
+
 function copyFragmentData(
   component: ComponentWrapper | ComDesc
 ): ComponentWrapper | ComDesc {

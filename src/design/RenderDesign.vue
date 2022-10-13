@@ -5,9 +5,6 @@ import {
   resolveComponent,
   toRaw,
   createTextVNode as _createTextVNode,
-  type Slot,
-  type ConcreteComponent,
-  type Slots,
 } from "vue";
 import type { VNode } from "vue";
 import { useRenderStore } from "@/stores/render";
@@ -21,6 +18,11 @@ export default defineComponent({
   props: {
     renderData: { type: ComponentWrapper, required: true },
     preData: { type: ComponentWrapper }, //组件插槽都是这个
+  },
+  data() {
+    return {
+      // isActive: false,
+    };
   },
   mounted() {
     this.$nextTick(() => {
@@ -60,7 +62,7 @@ export default defineComponent({
           DragHandler.dropHandler(ev, data as ComponentWrapper); //组件需要找到上一级的list集合？？？？？？？？？？
 
         mixinAttrs.onClick = (ev: PointerEvent) =>
-          DragHandler.clickHandler(ev, __this.renderData);
+          DragHandler.clickHandler(ev, __this.renderData, __this);
       }
       //植入方法
       const methods = (data as ComDesc).methods;
@@ -141,8 +143,23 @@ export default defineComponent({
         childSolts
       );
     }
+    // onClick = (ev: PointerEvent) =>
+    // DragHandler.clickHandler(ev, __this.renderData);
+    return [
+      singleDepthRender(this.$props.renderData!, this.preData),
 
-    return singleDepthRender(this.$props.renderData!, this.preData);
+      h(
+        "div",
+        {
+          onClick: (ev: PointerEvent) =>
+            DragHandler.deleteHandler(ev, __this.renderData),
+          class: ["design-view-action"],
+        },
+        h(resolveComponent("Delete"), {
+          style: "width: 1em; height: 1em; margin-right: 8px",
+        })
+      ),
+    ];
   },
 });
 </script>
