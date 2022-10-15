@@ -145,32 +145,37 @@ export default defineComponent({
         childSolts
       );
     }
-    // onClick = (ev: PointerEvent) =>
-    // DragHandler.clickHandler(ev, __this.renderData);
-    // return [
-    //   singleDepthRender(this.$props.renderData!, this.preData),
-    //   h(
-    //     "div",
-    //     {
-    //       onClick: (ev: PointerEvent) =>
-    //         DragHandler.deleteHandler(ev, __this.renderData),
-    //       class: ["design-view-action"],
-    //     },
-    //     h(resolveComponent("Delete"), {
-    //       style: "width: 1em; height: 1em; margin-right: 8px",
-    //     })
-    //   ),
-    // ];
-    return [
-      singleDepthRender(this.$props.renderData!, this.preData),
-      <div class={["design-operate"]}>
-        <delete
-          onClick={(ev: PointerEvent) =>
-            DragHandler.deleteHandler(ev, __this.renderData)
-          }
-        />
-      </div>,
-    ];
+
+    return (
+      <div
+        draggable
+        onClick={(ev: MouseEvent) =>
+          DragHandler.clickHandler(
+            ev,
+            __this.renderData,
+            () => (__this.isActive = !__this.isActive)
+          )
+        }
+        onDragstart={(ev: DragEvent) =>
+          DragHandler.dragstartHandler(ev, __this.renderData)
+        }
+        onDragover={(ev: DragEvent) =>
+          DragHandler.dragoverHandler(ev, this.renderData as ComponentHead)
+        }
+        onDrop={(ev: DragEvent) =>
+          DragHandler.dropHandler(ev, this.renderData as ComponentHead)
+        }
+      >
+        <div class={["design-operate"]}>
+          <delete
+            onClick={(ev: PointerEvent) =>
+              DragHandler.deleteHandler(ev, __this.renderData)
+            }
+          />
+        </div>
+        singleDepthRender(this.renderData!.list, this.preData),
+      </div>
+    );
   },
 });
 </script>

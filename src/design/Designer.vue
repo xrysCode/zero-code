@@ -65,7 +65,10 @@
     </el-aside>
 
     <el-container>
-      <el-header>Header</el-header>
+      <el-header
+        >Header
+        <el-button type="primary">保存</el-button>
+      </el-header>
       <el-main>
         <div style="position: relative; height: 100%; width: 100%">
           <!-- <div >请从左侧列表中选择一个组件, 然后用鼠标拖动组件放置于此处。</div> -->
@@ -89,7 +92,7 @@
 
     <el-aside>
       <com-edit-wrapper
-        :componentData="data"
+        :componentData="componentData"
         @updateEditData="updateEditData"
       />
     </el-aside>
@@ -101,7 +104,7 @@ import * as baseConfigData from "./componentDesc";
 import { MsgDto, MsgType, PositionMsgDto } from "@/design/postMeaagae";
 // import MenuWrapper from '@/design/comWrapper/MenuWrapper.vue'
 import ComEditWrapper from "./comWrapper/ComEditWrapper.vue";
-import { ComponentWrapper, RangeEnum } from "./componentDesc";
+import { ComponentHead, RangeEnum } from "./componentDesc";
 import { cloneData } from "./designUtils";
 
 export default defineComponent({
@@ -123,7 +126,7 @@ export default defineComponent({
       activeTabName: "componentChoose",
       origin: "",
       // type: "",
-      data: new ComponentWrapper("", RangeEnum.START),
+      componentData: new ComponentHead("", RangeEnum.UP_DOWN),
       messageEvent: null as MessageEvent | null,
       // editData: {},
     };
@@ -153,7 +156,7 @@ export default defineComponent({
         case MsgType.dragleave:
           break;
         case MsgType.Edit:
-          __this.data = msgDto.editData!;
+          __this.componentData = msgDto.editData!;
           break;
       }
     };
@@ -162,7 +165,7 @@ export default defineComponent({
     updateEditData() {
       // debugger;
       this.messageEvent!.source!.postMessage(
-        new MsgDto(MsgType.Edit, undefined, cloneData(this.data)),
+        new MsgDto(MsgType.Edit, undefined, cloneData(this.componentData)),
         this.messageEvent!.origin
       );
     },
@@ -202,8 +205,8 @@ export default defineComponent({
     dropHandler(ev: DragEvent) {
       const componentType = ev.dataTransfer!.getData("text/plain") as string;
       //加载设置数据
-      // this.data = baseConfigData[componentType] as ComponentWrapper;
-      const configData = baseConfigData[componentType] as ComponentWrapper;
+      // this.data = baseConfigData[componentType] as ComponentHead;
+      const configData = baseConfigData[componentType];
 
       //释放数据，并打开编辑框
 

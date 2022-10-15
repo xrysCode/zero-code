@@ -6,7 +6,7 @@ import type { ComDesc } from "@/design/componentDesc";
 import {
   Layout,
   RangeEnum,
-  ComponentWrapper,
+  ComponentHead,
   StartDesign,
 } from "@/design/componentDesc";
 import * as DragHandler from "./designUtils";

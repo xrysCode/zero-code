@@ -1,11 +1,7 @@
-import {
-  //   Layout,
-  //   RangeEnum,
-  type ComponentWrapper,
-  type ComDesc,
-  RangeEnum,
-} from "@/design/componentDesc";
+import { ComponentHead, type ComDesc, RangeEnum } from "@/design/componentDesc";
 import { useRenderStore } from "@/stores/render";
+import type { DefineComponent } from "vue";
+import type RenderDesign from "./RenderDesign.vue";
 import { MsgDto, MsgType } from "./postMeaagae";
 
 enum DropType {
@@ -15,26 +11,26 @@ enum DropType {
 }
 
 class DropInfo {
-  dropType: DropType; //
-  draggingNode?: ComponentWrapper;
-  dropNode?: ComponentWrapper;
-  constructor(dropType: DropType) {
+  dropType?: DropType; //
+  draggingNode?: ComponentHead;
+  dropNode?: ComponentHead;
+  constructor(dropType?: DropType) {
     this.dropType = dropType;
   }
 }
 
-export const dropInfo = new DropInfo(DropType.after);
+export const dropInfo = new DropInfo();
 
 export const dragstartHandler = (
   ev: DragEvent,
-  draggingNode: ComponentWrapper,
-  isMsgTrigger?: Boolean = false
+  draggingNode: ComponentHead,
+  isMsgTrigger?: Boolean
 ) => {
   ev.dataTransfer!.setData("text", "");
   dropInfo.draggingNode = draggingNode;
-  dropInfo.dropNode = null;
+  // dropInfo.dropNode = null;
   if (!isMsgTrigger) {
-    dropInfo.dropType = null; //消息传递的时候不重置
+    dropInfo.dropType = undefined; //消息传递的时候不重置
   }
 
   console.log("开始拖拽", dropInfo, ev);
@@ -47,10 +43,11 @@ export const dragstartHandler = (
 */
 export const dragoverHandler = (
   ev: DragEvent,
-  dropComponentData: ComponentWrapper
+  dropComponentData: ComponentHead
 ) => {
   ev.stopPropagation();
   if (dropComponentData == dropInfo.draggingNode) {
+    console.log("进入自己");
     return;
   }
   ev.preventDefault();
@@ -58,42 +55,52 @@ export const dragoverHandler = (
   const dropIndicatorStyle = document.getElementById(
     "design-drop-indicator"
   )!.style;
-
-  if (dropComponentData.rangeFlag & RangeEnum.DROP_SLOT) {
-    //插槽只会在里面，如果内部有组件，那么是触发内部的组件
-    dropInfo.dropType = DropType.inner;
+  const position = el.getBoundingClientRect();
+  let showInnerColer = false;
+  if (dropComponentData.rangeFlag & RangeEnum.UP_INNER_DOWN) {
+    //越过组件,在组件的前后插队
+    const splitPoint1 = position.top + (position.bottom - position.top) * 0.25;
+    const splitPoint2 = position.top + (position.bottom - position.top) * 0.75;
+    if (ev.clientY < splitPoint1) {
+      dropInfo.dropType = DropType.before;
+      dropIndicatorStyle.top = `${position.top - 2}px`;
+    } else if (ev.clientY > splitPoint2) {
+      dropInfo.dropType = DropType.after;
+      dropIndicatorStyle.top = `${position.bottom - 2}px`;
+    } else {
+      showInnerColer = true;
+      dropInfo.dropType = DropType.inner;
+    }
+  } else if (dropComponentData.rangeFlag & RangeEnum.UP_DOWN) {
+    //越过组件,在组件的前后插队
+    const splitPoint = position.top + (position.bottom - position.top) * 0.5;
+    if (ev.clientY < splitPoint) {
+      dropInfo.dropType = DropType.before;
+      dropIndicatorStyle.top = `${position.top - 2}px`;
+    } else {
+      dropInfo.dropType = DropType.after;
+      dropIndicatorStyle.top = `${position.bottom - 2}px`;
+    }
+  }
+  //  else if (dropComponentData.rangeFlag & RangeEnum.INNER_ROUTER) {
+  //   //内部如果存在数据，那么展示的是最后组件的指示线
+  //   dropInfo.dropType = DropType.inner;
+  //   if (dropComponentData.list.length > 0) {
+  //     position = el.lastElementChild!.getBoundingClientRect();
+  //     dropIndicatorStyle.top = `${position.bottom - 2}px`;
+  //   } else {
+  //     showInnerColer = true;
+  //   }
+  // }
+  if (showInnerColer) {
     el.classList.add("design-drop-inner");
     dropIndicatorStyle.display = "none";
-    return;
-    /*if (dropComponentData.list.length == 0) {
-      //无内容
-      el.classList.add("design-drop-inner");
-      dropIndicatorStyle.display = "none";
-    } else {
-      //且内部没有内容
-      const position = el.lastElementChild!.getBoundingClientRect();
-      dropIndicatorStyle.top = `${position.bottom - 2}px`;
-      el.classList.remove("design-drop-inner");
-      dropIndicatorStyle.removeProperty("display");
-      dropIndicatorStyle.left = `${position.left}px`;
-      dropIndicatorStyle.width = `${position.width}px`;
-    }*/
-  }
-  //越过组件,在组件的前后插队
-  const position = el.getBoundingClientRect();
-  const splitPoint = position.top + (position.bottom - position.top) * 0.5;
-  if (ev.clientY < splitPoint) {
-    dropInfo.dropType = DropType.before;
-    dropIndicatorStyle.top = `${position.top - 2}px`;
   } else {
-    dropInfo.dropType = DropType.after;
-    dropIndicatorStyle.top = `${position.bottom - 2}px`;
+    el.classList.remove("design-drop-inner");
+    dropIndicatorStyle.removeProperty("display");
+    dropIndicatorStyle.left = `${position.left}px`;
+    dropIndicatorStyle.width = `${position.width}px`;
   }
-  el.classList.remove("design-drop-inner");
-  dropIndicatorStyle.removeProperty("display");
-  dropIndicatorStyle.left = `${position.left}px`;
-  dropIndicatorStyle.width = `${position.width}px`;
-  // debugger;
 };
 
 export const dragleaveHandler = (ev: DragEvent) => {
@@ -105,7 +112,7 @@ export const dragleaveHandler = (ev: DragEvent) => {
 //组件内部的元素项拖动，只能上下。
 export const dropHandler = (
   ev: DragEvent,
-  dropComponentData: ComponentWrapper
+  dropComponentData: ComponentHead
 ) => {
   ev.stopPropagation();
   ev.preventDefault();
@@ -116,19 +123,25 @@ export const dropHandler = (
   //组合数据
   dropInfo.dropNode = dropComponentData;
   console.log("结束拖拽", dropInfo, ev);
+  if (dropInfo.draggingNode == dropInfo.dropNode) {
+    console.log("相同的数据");
+    return;
+  }
+
   //截断原来的数据 删除原来的位置的组件
   const dragNode = dropInfo.draggingNode!;
   const preDragNode = dragNode?._preNode;
   if (preDragNode) {
-    const ri = preDragNode.list.indexOf(dragNode);
-    preDragNode.list.splice(ri, 1);
+    //新增来的没有这个值--但是顶级的时候跨路由？？？？？
+    const removeIndex = preDragNode.list.indexOf(dragNode);
+    preDragNode.list.splice(removeIndex, 1);
   }
 
   if (dropInfo.dropType == DropType.inner) {
-    dropComponentData.list.push(dropInfo.draggingNode!);
+    dropComponentData.list.push(dragNode);
     return;
   }
-  //找打父级的存放集合
+  //找到父级的存放集合
   const preDropList = dropInfo.dropNode._preNode!.list;
   const i = preDropList.indexOf(dropComponentData);
   switch (dropInfo.dropType) {
@@ -143,30 +156,38 @@ export const dropHandler = (
 
 ////////////////////////////////////////////////////////
 
-let beforeClickEl: Element;
-const faultRecoverMap = new Map<Number, ComponentWrapper | ComDesc>();
+// let beforeClickEl: Element;
+// let beforeClickVm: DefineComponent;
+let beforeClickFun: Function;
+const faultRecoverMap = new Map<Number, ComponentHead | ComDesc>();
 /**
  * 点击将当前组件部分船出编辑
  */
 export const clickHandler = (
   ev: PointerEvent | Event,
-  activeData: ComponentWrapper
+  activeData: ComponentHead,
+  resetIsActive: Function
 ) => {
   ev.stopPropagation();
-
-  const el = ev.currentTarget as Element;
-  if (beforeClickEl) {
-    beforeClickEl.classList.remove("design-active-box");
+  if (beforeClickFun) {
+    beforeClickFun();
   }
-  el.classList.add("design-active-box");
-  beforeClickEl = el;
+
+  beforeClickFun = resetIsActive;
+  resetIsActive();
+  // const el = ev.currentTarget as Element;
+  // if (beforeClickEl) {
+  //   beforeClickEl.classList.remove("design-active-box");
+  // }
+  // el.classList.add("design-active-box");
+  // beforeClickEl = el;
   // debugger;
   //推送数据
   //待优化，为何clone失败
   // const strMsg = copyFragmentData(headerData);
   //   const store = useRenderStore();
   faultRecoverMap.clear();
-  const fragmentData = copyFragmentData(activeData) as ComponentWrapper;
+  const fragmentData = copyFragmentData(activeData) as ComponentHead;
   const win = window.top;
   win!.postMessage(
     //将跨域的组件过滤掉
@@ -180,7 +201,7 @@ export const clickHandler = (
 
 export const deleteHandler = (
   ev: PointerEvent | Event,
-  activeData: ComponentWrapper
+  activeData: ComponentHead
 ) => {
   ev.stopPropagation();
   const preDropList = activeData._preNode!.list;
@@ -190,7 +211,11 @@ export const deleteHandler = (
   const win = window.top;
   win!.postMessage(
     //将跨域的组件过滤掉
-    new MsgDto(MsgType.Edit, undefined, new ComponentWrapper()),
+    new MsgDto(
+      MsgType.Edit,
+      undefined,
+      new ComponentHead("", RangeEnum.ComponentHead)
+    ),
     "*"
     // win?.location.origin
     // "http://localhost:5173"
@@ -199,12 +224,12 @@ export const deleteHandler = (
 };
 
 function copyFragmentData(
-  component: ComponentWrapper | ComDesc
-): ComponentWrapper | ComDesc {
+  component: ComponentHead | ComDesc
+): ComponentHead | ComDesc {
   faultRecoverMap.set(component.link!, component);
   const copyData = { ...component };
   if (copyData.list && copyData.list.length > 0) {
-    if (copyData.rangeFlag == RangeEnum.DROP_SLOT) {
+    if (copyData.rangeFlag == RangeEnum.ComponentSlot) {
       //截断
       copyData.list = [];
       return copyData;
@@ -217,7 +242,7 @@ function copyFragmentData(
   return copyData;
 }
 
-// export function recoverData2(newData: ComponentWrapper | ComDesc) {
+// export function recoverData2(newData: ComponentHead | ComDesc) {
 //   const old = faultRecoverMap.get(newData.link!);
 //   //用新值覆盖
 //   const mixin = { ...old, ...newData };
@@ -231,8 +256,8 @@ function copyFragmentData(
 //   return mixin;
 // }
 export function recoverData(
-  newData: ComponentWrapper | ComDesc
-): ComponentWrapper | ComDesc {
+  newData: ComponentHead | ComDesc
+): ComponentHead | ComDesc {
   const old = faultRecoverMap.get(newData.link!);
   if (!old) {
     return newData;
@@ -247,13 +272,13 @@ export function recoverData(
     }
   }
   //恢复值
-  if (newData.rangeFlag == RangeEnum.DROP_SLOT) {
+  if (newData.rangeFlag == RangeEnum.ComponentSlot) {
     old.list = beforeList;
   }
   return old;
 }
 
-export function object2Str(data: ant): string {
+export function object2Str(data: any): string {
   return JSON.stringify(data, (key, value) => {
     if (key.startsWith("_")) {
       return undefined;

@@ -1,6 +1,6 @@
 // interface HistoryState {
 // }
-import type { ComponentWrapper, EditConfig } from "./componentDesc";
+import type { ComponentHead, EditConfig } from "./componentDesc";
 
 export enum MsgType {
   dragover = "dragover",
@@ -12,13 +12,13 @@ export enum MsgType {
 export class MsgDto {
   operateType: MsgType; //操作类型
   position?: PositionMsgDto;
-  editData?: ComponentWrapper;
+  editData?: ComponentHead;
   editConfig?: EditConfig[];
 
   constructor(
     operateType: MsgType,
     position?: PositionMsgDto,
-    editData?: ComponentWrapper
+    editData?: ComponentHead
   ) {
     this.operateType = operateType;
     this.position = position;

@@ -7,24 +7,37 @@ html,
   width: 100%;
 }
 
-.design-box {
-  outline: 1px dashed rgb(187, 187, 187);
+.design-component-box,
+.design-slot-box,
+.design-router-box {
+  /* outline: 1px dashed rgb(187, 187, 187); */
   outline-offset: -1px;
+  /* position: relative; */
+  min-height: 1.5rem;
+}
+.design-component-box {
+  outline: 1.5px dashed rgb(155, 152, 152);
   position: relative;
-  min-height: 1.5em;
+  /* min-height: 1.5em; */
 }
 .design-slot-box {
-  outline: -1px dashed rgb(155, 88, 88);
-  position: relative;
-  min-height: 1.5em;
-  height: 100%;
+  outline: 1.5px dashed rgb(100, 204, 143);
+  /* min-height: 1.5em;
+  height: 100%; */
 }
+.design-router-box {
+  outline: 1.5px dashed rgb(223, 25, 25);
+  /* min-height: 1.5em; */
+  /* height: 100%; */
+}
+
 div.design-active-box {
   outline: 3px solid var(--el-color-primary);
   outline-offset: -1px;
   z-index: 10;
 }
-.design-view-action {
+
+.design-operate {
   position: absolute;
   right: 0;
   bottom: 0;
@@ -33,6 +46,7 @@ div.design-active-box {
   background: var(--el-color-primary);
   z-index: 10;
 }
+
 /* --el-color-primary: #409eff; */
 .design-drop-inner {
   background-color: var(--el-color-primary);

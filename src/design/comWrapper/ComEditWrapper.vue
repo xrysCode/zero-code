@@ -57,7 +57,7 @@ import { onMounted, reactive, ref, watch, computed } from "vue";
 import { MsgDto, MsgType } from "../postMeaagae";
 // ComponentWrapper
 import {
-  ComponentWrapper,
+  ComponentHead,
   RangeEnum,
   EditConfig,
   type ComDesc,
@@ -66,7 +66,7 @@ import * as ComponentDesc from "@/design/componentDesc";
 // import { computed } from "@vue/reactivity";
 
 const props = defineProps({
-  componentData: { type: ComponentWrapper, required: true },
+  componentData: { type: ComponentHead, required: true },
 });
 const emit = defineEmits(["updateEditData"]);
 

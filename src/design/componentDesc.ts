@@ -1,67 +1,98 @@
 import type { list } from "postcss";
 
+// 组件整体-上下、路由-上内下、插槽-内
+export enum RangeEnum {
+  ENTRY = 1 << 0, //入口
+  START = 1 << 1, //分割标记，组件开始
+  NONE = 1 << 2, //无效果
+
+  DRAG = 1 << 3, //允许拖动
+  UP_DOWN = 1 << 4, //效果可在上下安放
+  UP_INNER_DOWN = 1 << 5, //上中下
+
+  ROUTER = 1 << 6, //路由和插槽样式不同
+  SLOT_OUT = 1 << 7,
+  SLOT_INNER = 1 << 8,
+
+  ComponentPortal = UP_INNER_DOWN | ENTRY,
+  ComponentHead = UP_DOWN | DRAG | START,
+  ComponentSlot = SLOT_OUT | UP_INNER_DOWN,
+  ComponentInner = NONE,
+  ComponentInnerSlot = SLOT_INNER,
+  ComponentRouter = ROUTER | UP_INNER_DOWN | START,
+}
+
 //组合组件和插槽都用div包裹。以便产生线框
 export interface ComDesc {
   componentTag: string;
   attrs: { [key: string]: any };
-  list: Array<ComDesc | ComponentWrapper>;
+  list: Array<ComDesc | ComponentHead>;
   // name?: string; //名称
   rangeFlag: RangeEnum; //范围标识
 
   text?: string;
   methods?: [{ evenType: string; refKey: string }]; //引用methodDesc
 
-  _preNode?: ComDesc | ComponentWrapper;
+  _preNode?: ComDesc | ComponentHead;
+  _root?: ComponentHead;
   link?: number;
 }
-// 回溯组件？
-export enum RangeEnum {
-  START = 1 << 0, //"start", //有框
-  INNER = 1 << 1, //"inner",
-  INNER_SOLT = 1 << 2, //"inner",
-  END = 1 << 3, //"end", //结束
-  DROP_SLOT = 1 << 4, //"drop_slot", //需要有进入的框,表示有子级
-  RouterView = 1 << 5, //上中下
-}
-// interface MethodDesc{
-//   [key: string]: string
-// }
 
-export class ComponentWrapper implements ComDesc {
+export class ComponentHead {
   type: string; //组件名称英文
   name?: string; //组件名称
-  componentTag = "div";
+  // componentTag = "div";
   rangeFlag: RangeEnum;
-  list: ComDesc[] = [];
+  fullPath?: string; //路由路径
 
   attrs: { [key: string]: any } = {};
   // props: object = {};
   defaultData?: object = {};
   methodDesc?: { [key: string]: string };
+  list: Array<ComDesc | ComponentHead> = [];
 
-  _preNode?: ComDesc | ComponentWrapper;
-  link: number;
+  _preNode?: ComDesc | ComponentHead;
+  _root?: ComponentHead;
+  link: number = 0;
   increment_cursor: number = 0;
-  constructor(type: string, rangeFlag: RangeEnum, link: number, name?: string) {
+  constructor(type: string, rangeFlag: RangeEnum, name?: string) {
     this.type = type;
     this.rangeFlag = rangeFlag;
     this.name = name ? name : type;
+  }
+}
+
+export class SlotWrapper implements ComDesc {
+  componentTag = "div";
+  rangeFlag = RangeEnum.ComponentSlot;
+
+  attrs: { [key: string]: any } = {};
+  list: ComDesc[] = [];
+
+  _preNode?: ComDesc | ComponentHead;
+  _root?: ComponentHead;
+  link: number;
+  increment_cursor: number = 0;
+  constructor(link: number) {
     this.link = link;
   }
 }
-export const StartDesign = new ComponentWrapper(
+
+export const StartDesign = new ComponentHead(
   "StartDesign",
-  RangeEnum.START | RangeEnum.DROP_SLOT,
-  0
+  RangeEnum.ComponentPortal
 );
-StartDesign.attrs.style = { height: "100%" };
-export const RouterView = new ComponentWrapper(
+StartDesign.attrs = {
+  // class: ["design-component-box"],
+  style: { height: "100%" },
+};
+
+export const RouterView = new ComponentHead(
   "RouterView",
-  RangeEnum.START | RangeEnum.DROP_SLOT,
-  0,
+  RangeEnum.ComponentRouter,
   "路由出口"
 );
-RouterView.attrs.style = { border: "1px solid red", height: "100%" };
+RouterView.attrs.class = ["design-router-box"];
 RouterView.list = [
   {
     componentTag: "RouterView",
@@ -69,12 +100,13 @@ RouterView.list = [
       name: "default",
       // route: undif
     },
-    rangeFlag: RangeEnum.END,
+    rangeFlag: RangeEnum.ComponentRouter,
     link: ++RouterView.increment_cursor,
+    list: [],
   },
 ];
 
-export const Layout = new ComponentWrapper("Layout", RangeEnum.START, 0);
+export const Layout = new ComponentHead("Layout", RangeEnum.ComponentHead);
 Layout.list = [
   {
     componentTag: "el-row",
@@ -83,21 +115,15 @@ Layout.list = [
       justify: "start",
       align: "top",
     },
-    rangeFlag: RangeEnum.INNER,
+    rangeFlag: RangeEnum.ComponentInner,
     link: ++Layout.increment_cursor,
     list: [
       {
         componentTag: "el-col",
         attrs: {},
-        rangeFlag: RangeEnum.INNER,
+        rangeFlag: RangeEnum.ComponentInner,
         link: ++Layout.increment_cursor,
-        list: [
-          new ComponentWrapper(
-            "Layout",
-            RangeEnum.DROP_SLOT,
-            ++Layout.increment_cursor
-          ),
-        ],
+        list: [new SlotWrapper(++Layout.increment_cursor)],
       },
     ],
   },
@@ -108,9 +134,8 @@ Layout.list = [
       justify: "start",
       align: "top",
     },
-    rangeFlag: RangeEnum.INNER,
+    rangeFlag: RangeEnum.ComponentInner,
     link: ++Layout.increment_cursor,
-    // text: '一级',
     list: [
       {
         componentTag: "el-col",
@@ -120,15 +145,9 @@ Layout.list = [
           push: 0,
           style: { height: "1Rem" },
         },
-        rangeFlag: RangeEnum.INNER,
+        rangeFlag: RangeEnum.INNER_ROUTER,
         link: ++Layout.increment_cursor,
-        list: [
-          new ComponentWrapper(
-            "Layout",
-            RangeEnum.DROP_SLOT,
-            ++Layout.increment_cursor
-          ),
-        ],
+        list: [new SlotWrapper(++Layout.increment_cursor)],
       },
       {
         componentTag: "el-col",
@@ -137,15 +156,9 @@ Layout.list = [
           offset: 0,
           push: 0,
         },
-        rangeFlag: RangeEnum.INNER,
+        rangeFlag: RangeEnum.ComponentInner,
         link: ++Layout.increment_cursor,
-        list: [
-          new ComponentWrapper(
-            "Layout",
-            RangeEnum.DROP_SLOT,
-            ++Layout.increment_cursor
-          ),
-        ],
+        list: [new SlotWrapper(++Layout.increment_cursor)],
       },
     ],
   },
@@ -177,7 +190,7 @@ export const LayoutEdit = [
   // new EditConfig("","","",""),
 ];
 
-export const Menu = new ComponentWrapper("Menu", RangeEnum.START, 0, "菜单");
+export const Menu = new ComponentHead("Menu", RangeEnum.ComponentHead, "菜单");
 Menu.list = [
   {
     componentTag: "el-menu",
@@ -186,7 +199,7 @@ Menu.list = [
       mode: "horizontal",
       router: true,
     },
-    rangeFlag: RangeEnum.INNER,
+    rangeFlag: RangeEnum.ComponentInner,
     link: ++Menu.increment_cursor,
     list: [
       {
@@ -195,7 +208,7 @@ Menu.list = [
           index: "/render/inner",
         },
         text: "Processing Center",
-        rangeFlag: RangeEnum.END,
+        rangeFlag: RangeEnum.ComponentInner,
         link: ++Menu.increment_cursor,
         list: [],
       },
@@ -204,7 +217,7 @@ Menu.list = [
         attrs: {
           index: "2",
         },
-        rangeFlag: RangeEnum.INNER,
+        rangeFlag: RangeEnum.ComponentInner,
         link: ++Menu.increment_cursor,
         list: [
           {
@@ -213,7 +226,7 @@ Menu.list = [
               "#title": null,
             },
             text: "Workspace",
-            rangeFlag: RangeEnum.INNER_SOLT,
+            rangeFlag: RangeEnum.ComponentInnerSlot,
             link: ++Menu.increment_cursor,
             list: [],
           },
@@ -224,7 +237,7 @@ Menu.list = [
               index: "/a/a",
             },
             text: "item one",
-            rangeFlag: RangeEnum.END,
+            rangeFlag: RangeEnum.ComponentInner,
             link: ++Menu.increment_cursor,
             list: [],
           },
@@ -234,7 +247,7 @@ Menu.list = [
               index: "/a/b",
             },
             text: "item two",
-            rangeFlag: RangeEnum.END,
+            rangeFlag: RangeEnum.ComponentInner,
             link: ++Menu.increment_cursor,
             list: [],
           },
@@ -247,7 +260,7 @@ Menu.list = [
           disabled: "",
         },
         text: "Info",
-        rangeFlag: RangeEnum.END,
+        rangeFlag: RangeEnum.ComponentInner,
         link: ++Menu.increment_cursor,
         list: [],
       },
@@ -257,7 +270,7 @@ Menu.list = [
           index: "/a/d",
         },
         text: "Orders",
-        rangeFlag: RangeEnum.END,
+        rangeFlag: RangeEnum.ComponentInner,
         link: ++Menu.increment_cursor,
         list: [],
       },
@@ -265,7 +278,7 @@ Menu.list = [
   },
 ];
 
-export const Table = new ComponentWrapper("Table", RangeEnum.START, 0, "表格");
+export const Table = new ComponentHead("Table", RangeEnum.UP_DOWN, "表格");
 Table.defaultData = [
   {
     date: "2016-05-03",
@@ -306,7 +319,7 @@ Table.list = [
     attrs: {
       data: Table.defaultData,
     },
-    rangeFlag: RangeEnum.INNER,
+    rangeFlag: RangeEnum.ComponentInner,
     link: ++Table.increment_cursor,
 
     list: [
@@ -318,7 +331,7 @@ Table.list = [
           label: "Date",
           width: "250",
         },
-        rangeFlag: RangeEnum.END,
+        rangeFlag: RangeEnum.ComponentInner,
         link: ++Table.increment_cursor,
         list: [],
       },
@@ -329,7 +342,7 @@ Table.list = [
           label: "Name",
           width: "200",
         },
-        rangeFlag: RangeEnum.END,
+        rangeFlag: RangeEnum.ComponentInner,
         link: ++Table.increment_cursor,
         list: [],
       },
@@ -340,7 +353,7 @@ Table.list = [
           label: "Address",
           width: "600",
         },
-        rangeFlag: RangeEnum.END,
+        rangeFlag: RangeEnum.ComponentInner,
         link: ++Table.increment_cursor,
         list: [],
       },
@@ -352,7 +365,7 @@ Table.list = [
           label: "Operations",
           width: "120",
         },
-        rangeFlag: RangeEnum.INNER,
+        rangeFlag: RangeEnum.ComponentInner,
         link: ++Table.increment_cursor,
         list: [
           {
@@ -361,8 +374,8 @@ Table.list = [
               //{ row, column, $index }
               "#default": "row",
             },
-            rangeFlag: RangeEnum.INNER_SOLT,
-            link: ++Menu.increment_cursor,
+            rangeFlag: RangeEnum.ComponentInnerSlot,
+            link: ++Table.increment_cursor,
             list: [
               {
                 componentTag: "el-button",
@@ -373,7 +386,7 @@ Table.list = [
                 },
                 text: "Detail",
                 methods: [{ evenType: "click", refKey: "handleClick" }],
-                rangeFlag: RangeEnum.END,
+                rangeFlag: RangeEnum.ComponentInner,
                 link: ++Table.increment_cursor,
                 list: [],
               },
@@ -385,7 +398,7 @@ Table.list = [
                   size: "small",
                 },
                 text: "Edit",
-                rangeFlag: RangeEnum.END,
+                rangeFlag: RangeEnum.ComponentInner,
                 link: ++Table.increment_cursor,
                 list: [],
               },
