@@ -3,6 +3,7 @@ import { useRenderStore } from "@/stores/render";
 import type { DefineComponent } from "vue";
 import type RenderDesign from "./RenderDesign.vue";
 import { MsgDto, MsgType } from "./postMeaagae";
+import { addInitChildRoute } from "@/router";
 
 enum DropType {
   before = "before",
@@ -14,6 +15,7 @@ class DropInfo {
   dropType?: DropType; //
   draggingNode?: ComponentHead;
   dropNode?: ComponentHead;
+  isAdd: boolean = false;
   constructor(dropType?: DropType) {
     this.dropType = dropType;
   }
@@ -24,13 +26,15 @@ export const dropInfo = new DropInfo();
 export const dragstartHandler = (
   ev: DragEvent,
   draggingNode: ComponentHead,
-  isMsgTrigger?: Boolean
+  isAdd: boolean = false
 ) => {
   ev.dataTransfer!.setData("text", "");
   dropInfo.draggingNode = draggingNode;
-  // dropInfo.dropNode = null;
-  if (!isMsgTrigger) {
-    dropInfo.dropType = undefined; //消息传递的时候不重置
+  dropInfo.isAdd = isAdd;
+  dropInfo.dropNode = undefined;
+  if (!isAdd) {
+    //不是新增的时候重置
+    dropInfo.dropType = undefined;
   }
 
   console.log("开始拖拽", dropInfo, ev);
@@ -132,9 +136,13 @@ export const dropHandler = (
   const dragNode = dropInfo.draggingNode!;
   const preDragNode = dragNode?._preNode;
   if (preDragNode) {
-    //新增来的没有这个值--但是顶级的时候跨路由？？？？？
+    //新增来的没有这个值--
     const removeIndex = preDragNode.list.indexOf(dragNode);
     preDragNode.list.splice(removeIndex, 1);
+  }
+
+  if (dropInfo.isAdd && dragNode.rangeFlag & RangeEnum.ROUTER) {
+    addInitChildRoute();
   }
 
   if (dropInfo.dropType == DropType.inner) {

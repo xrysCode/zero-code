@@ -1,4 +1,9 @@
+<!-- <template>
+  <RouterView />
+</template> -->
+
 <script lang="tsx">
+import { RouterLink, RouterView } from "vue-router";
 import { defineComponent, h, resolveComponent } from "vue";
 import type { VNode } from "vue";
 import { useRenderStore } from "@/stores/render";
@@ -9,24 +14,23 @@ import {
   ComponentHead,
   StartDesign,
 } from "@/design/componentDesc";
-import * as DragHandler from "./designUtils";
-import { saveData } from "./saveDataUtils";
-import { MsgDto, MsgType } from "./postMeaagae";
-import RenderDesign from "./RenderDesign.vue";
+import * as DragHandler from "@/design/designUtils";
+import { saveData } from "@/design/saveDataUtils";
+import { MsgDto, MsgType } from "@/design/postMeaagae";
+import router from "./router";
+// import RenderDesign from "@/design/RenderDesign.vue";
 
 export default defineComponent({
-  props: {
-    renderData: { type: ComponentHead, required: true },
-  },
-  components: { RenderDesign },
+  // props: {
+  //   renderData: { type: ComponentHead, required: true },
+  // },
+  components: { RouterView },
   data() {
     // return {
     //   renderData: {},
     // };
   },
   mounted() {
-    const store = useRenderStore();
-
     let beforeElSet = new Set<Element>();
     window.onmessage = (event: MessageEvent) => {
       const msgDto = event.data as MsgDto;
@@ -99,22 +103,13 @@ export default defineComponent({
 
   render() {
     const store = useRenderStore();
-    // store.$subscribe(
-    //   (mutation, state) => {
-    //     localStorage.setItem(
-    //       "renderData",
-    //       DragHandler.object2Str(state.renderData)
-    //     );
-    //   },
-    //   { deep: true }
-    // );
-    // store.renderMap.set("/render", this.renderData);
-    // this.renderData = store.renderMap.get("/render");
     store.$subscribe(
       (mutation, state) => {
-        const value = mutation.events.newValue as ComDesc;
-        const root = value._root!;
-        saveData(root);
+        const value = mutation.events.newValue as {
+          [key: string]: { renderData: ComponentHead };
+        };
+        // const root = value._root!;
+        saveData(value, router.currentRoute.value.fullPath);
       },
       { deep: true }
     );
@@ -126,29 +121,9 @@ export default defineComponent({
         style="display: none"
       ></div>,
       // <RenderDesign renderData={store.renderData} />,
-      <RenderDesign renderData={this.renderData} />,
+      // <RenderDesign renderData={this.renderData} />,
+      <RouterView />,
     ];
   },
 });
 </script>
-
-<!-- <style lang="scss">
-          // .design{
-          //   outline: 1px dashed rgb(187, 187, 187);
-          // }
-        .el-row {
-        
-          margin-bottom: 20px;
-        }
-        .el-row:last-child {
-          margin-bottom: 0;
-        }
-        .el-col {
-          border-radius: 4px;
-        }
-        
-        .grid-content {
-          border-radius: 4px;
-          min-height: 36px;
-        }
-        </style> -->

@@ -2,6 +2,7 @@ import { createApp } from "vue";
 import { createPinia } from "pinia";
 
 import App from "./App.vue";
+import App2 from "./App2.vue";
 import router from "./router";
 
 import "./assets/main.css";
@@ -12,7 +13,7 @@ import * as ElementPlusIconsVue from "@element-plus/icons-vue";
 
 // import { startListener } from "./design/PostMeaagae";
 
-const app = createApp(App);
+const app = createApp(App2);
 
 app.use(createPinia());
 app.use(router);

@@ -19,7 +19,8 @@ export enum RangeEnum {
   ComponentSlot = SLOT_OUT | UP_INNER_DOWN,
   ComponentInner = NONE,
   ComponentInnerSlot = SLOT_INNER,
-  ComponentRouter = ROUTER | UP_INNER_DOWN | START,
+  ComponentRouter = ROUTER | START,
+  ComponentInnerRouter = ROUTER,
 }
 
 //组合组件和插槽都用div包裹。以便产生线框
@@ -38,12 +39,19 @@ export interface ComDesc {
   link?: number;
 }
 
+interface RouterDesc {
+  fullPath: string; //路由的全路劲
+  nameView: string; //挂载的命名路由值
+  childRouterCount?: number;
+  // constructor() {}
+}
+
 export class ComponentHead {
   type: string; //组件名称英文
   name?: string; //组件名称
   // componentTag = "div";
   rangeFlag: RangeEnum;
-  fullPath?: string; //路由路径
+  routerDesc?: RouterDesc;
 
   attrs: { [key: string]: any } = {};
   // props: object = {};
@@ -92,7 +100,7 @@ export const RouterView = new ComponentHead(
   RangeEnum.ComponentRouter,
   "路由出口"
 );
-RouterView.attrs.class = ["design-router-box"];
+// RouterView.attrs.class = ["design-router-box"];
 RouterView.list = [
   {
     componentTag: "RouterView",
@@ -100,7 +108,7 @@ RouterView.list = [
       name: "default",
       // route: undif
     },
-    rangeFlag: RangeEnum.ComponentRouter,
+    rangeFlag: RangeEnum.ComponentInnerRouter,
     link: ++RouterView.increment_cursor,
     list: [],
   },

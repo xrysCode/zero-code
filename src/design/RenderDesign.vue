@@ -105,7 +105,7 @@ export default defineComponent({
       methodCacheMap.set(key, eval(fun));
     }
 
-    function singleDepthRender(
+    function childDepthRender(
       dataList: Array<ComDesc | ComponentHead>,
       preData?: ComDesc | ComponentHead,
       slotArgs?: object
@@ -124,9 +124,16 @@ export default defineComponent({
 
         const newAttrs = mixinAttrs(item, slotArgs);
 
-        const childSoltFuns = {} as { [name: string]: any }; // { [key: string]: Function };
-        //内部插槽
-        if (item.rangeFlag & RangeEnum.ComponentInnerSlot) {
+        const childSoltFuns = {} as { [name: string]: any };
+
+        if (item.rangeFlag & RangeEnum.ROUTER) {
+          return h(
+            resolveComponent(item.componentTag) as ComponentHead,
+            newAttrs
+          );
+        }
+        if (item.rangeFlag & RangeEnum.SLOT_INNER) {
+          //内部插槽
           for (const key in item.attrs) {
             //去掉#
             childSoltFuns[key.substr(1)] = (slotArgs: object) => {
@@ -136,13 +143,12 @@ export default defineComponent({
                 slotArr.push(text);
               }
               //所有的下级提级渲染
-              slotArr.push(...singleDepthRender(item.list, item, slotArgs));
+              slotArr.push(...childDepthRender(item.list, item, slotArgs));
               return slotArr;
             };
           }
         } else {
           //其他都是默认放入
-          //  const defaultSlots singleDepthRender(item.list, item, slotArgs)
           //当前级的文本
           childSoltFuns.default = () => {
             const defaultSlots = [] as VNode[];
@@ -150,7 +156,7 @@ export default defineComponent({
             if (text) {
               defaultSlots.push(_createTextVNode(text));
             }
-            defaultSlots.push(...singleDepthRender(item.list, item, slotArgs));
+            defaultSlots.push(...childDepthRender(item.list, item, slotArgs));
             return defaultSlots;
           };
         }
@@ -162,6 +168,7 @@ export default defineComponent({
         );
       });
     }
+
     const newAttrs = mixinAttrs(this.renderData, undefined);
     return (
       <div {...newAttrs} class={this.isActive ? "design-active-box" : ""}>
@@ -176,7 +183,7 @@ export default defineComponent({
           </div>
         ) : undefined}
 
-        {singleDepthRender(_renderData.list, _renderData)}
+        {childDepthRender(_renderData.list, _renderData)}
       </div>
     );
   },
