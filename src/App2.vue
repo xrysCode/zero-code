@@ -18,6 +18,7 @@ import * as DragHandler from "@/design/designUtils";
 import { saveData } from "@/design/saveDataUtils";
 import { MsgDto, MsgType } from "@/design/postMeaagae";
 import router from "./router";
+import type { RenderComponentProps } from "@/design/saveDataUtils";
 // import RenderDesign from "@/design/RenderDesign.vue";
 
 export default defineComponent({
@@ -97,22 +98,45 @@ export default defineComponent({
           console.log("编辑的数据消息", newData);
           // store.recoverData(msgDto.editData!);
           break;
+        case MsgType.SAVE:
+          const store = useRenderStore();
+          localStorage.clear();
+          store.renderMap.forEach((v, k) => {
+            saveData(v, k);
+          });
+          break;
       }
     };
   },
 
   render() {
     const store = useRenderStore();
-    store.$subscribe(
-      (mutation, state) => {
-        const value = mutation.events.newValue as {
-          [key: string]: { renderData: ComponentHead };
-        };
-        // const root = value._root!;
-        saveData(value, router.currentRoute.value.fullPath);
-      },
-      { deep: true }
-    );
+    // store.$subscribe(
+    //   (mutation, state) => {
+    //     const value = mutation.events.newValue; //as RenderComponentProps;
+    //     // const root = value._root!;
+    //     let routerData = null;
+    //     let registName = null;
+    //     if (value.rangeFlag >= 0) {
+    //       const routerRoot = (value as ComDesc)._root as ComponentHead;
+    //       if (!routerRoot) {
+    //         //未渲染使用的数据
+    //         console.log("未保存数据", value);
+    //         return;
+    //       }
+    //       const routerDesc = routerRoot.routerDesc!;
+    //       registName = routerDesc.registName;
+    //       routerData = state.renderMap.get(registName);
+    //     } else {
+    //       const com = Object.entries(value)[0][1].renderData as ComponentHead;
+    //       registName = com.routerDesc!.fullPath;
+    //       routerData = value;
+    //     }
+
+    //     saveData(routerData, registName);
+    //   },
+    //   { deep: true }
+    // );
 
     return [
       <div

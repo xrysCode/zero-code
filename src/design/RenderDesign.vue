@@ -77,7 +77,10 @@ export default defineComponent({
           DragHandler.dragstartHandler(ev, _renderData);
       }
       //拖拽浮动效果
-      if (data.rangeFlag & (RangeEnum.UP_DOWN | RangeEnum.UP_INNER_DOWN)) {
+      if (
+        data.rangeFlag &
+        (RangeEnum.UP_DOWN | RangeEnum.UP_INNER_DOWN | RangeEnum.ROUTER)
+      ) {
         mixinAttrs.ondragover = (ev: DragEvent) =>
           DragHandler.dragoverHandler(ev, data as ComponentHead);
         mixinAttrs.ondragleave = (ev: DragEvent) =>

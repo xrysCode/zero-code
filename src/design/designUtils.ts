@@ -141,8 +141,11 @@ export const dropHandler = (
     preDragNode.list.splice(removeIndex, 1);
   }
 
-  if (dropInfo.isAdd && dragNode.rangeFlag & RangeEnum.ROUTER) {
+  if (dragNode.rangeFlag & RangeEnum.ROUTER) {
+    // const rootRouter = dropInfo.dropNode._root?.routerDesc;
+    //第一次进入路由
     addInitChildRoute();
+    // return;
   }
 
   if (dropInfo.dropType == DropType.inner) {
@@ -234,7 +237,7 @@ export const deleteHandler = (
 function copyFragmentData(
   component: ComponentHead | ComDesc
 ): ComponentHead | ComDesc {
-  faultRecoverMap.set(component.link!, component);
+  faultRecoverMap.set(component.editLink!, component);
   const copyData = { ...component };
   if (copyData.list && copyData.list.length > 0) {
     if (copyData.rangeFlag == RangeEnum.ComponentSlot) {
@@ -266,7 +269,7 @@ function copyFragmentData(
 export function recoverData(
   newData: ComponentHead | ComDesc
 ): ComponentHead | ComDesc {
-  const old = faultRecoverMap.get(newData.link!);
+  const old = faultRecoverMap.get(newData.editLink!);
   if (!old) {
     return newData;
   }

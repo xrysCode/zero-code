@@ -19,8 +19,8 @@ export enum RangeEnum {
   ComponentSlot = SLOT_OUT | UP_INNER_DOWN,
   ComponentInner = NONE,
   ComponentInnerSlot = SLOT_INNER,
-  ComponentRouter = ROUTER | START,
-  ComponentInnerRouter = ROUTER,
+  ComponentRouter = ROUTER | UP_INNER_DOWN | START,
+  ComponentInnerRouter = NONE,
 }
 
 //组合组件和插槽都用div包裹。以便产生线框
@@ -41,8 +41,10 @@ export interface ComDesc {
 
 interface RouterDesc {
   fullPath: string; //路由的全路劲
-  nameView: string; //挂载的命名路由值
-  childRouterCount?: number;
+  viewName: string; //路由视图的名字
+  level: number; //层级深度
+  // registName: string; //路由注册的名字；fullPath+:+level 以区别父级
+  // routerViewCount?: number;
   // constructor() {}
 }
 
@@ -59,9 +61,14 @@ export class ComponentHead {
   methodDesc?: { [key: string]: string };
   list: Array<ComDesc | ComponentHead> = [];
 
-  _preNode?: ComDesc | ComponentHead;
+  _preNode?: ComDesc | ComponentHead; //组件连通
   _root?: ComponentHead;
-  link: number = 0;
+
+  _preRouteLink?: ComDesc | ComponentHead; //路由连通
+  _nextRouteLink?: ComDesc | ComponentHead; //路由连通
+  // _rootLink?: ComponentHead;
+  // _root?: ComponentHead;
+  editLink: number = 0; //编辑连接
   increment_cursor: number = 0;
   constructor(type: string, rangeFlag: RangeEnum, name?: string) {
     this.type = type;
@@ -86,13 +93,24 @@ export class SlotWrapper implements ComDesc {
   }
 }
 
-export const StartDesign = new ComponentHead(
-  "StartDesign",
-  RangeEnum.ComponentPortal
-);
-StartDesign.attrs = {
-  // class: ["design-component-box"],
-  style: { height: "100%" },
+// export const StartDesign = new ComponentHead(
+//   "StartDesign",
+//   RangeEnum.ComponentPortal
+// );
+// StartDesign.attrs = {
+//   // class: ["design-component-box"],
+//   style: { height: "100%" },
+// };
+export const clonStartDesign = () => {
+  const StartDesign = new ComponentHead(
+    "StartDesign",
+    RangeEnum.ComponentPortal
+  );
+  StartDesign.attrs = {
+    // class: ["design-component-box"],
+    style: { height: "100%" },
+  };
+  return StartDesign;
 };
 
 export const RouterView = new ComponentHead(
@@ -109,7 +127,7 @@ RouterView.list = [
       // route: undif
     },
     rangeFlag: RangeEnum.ComponentInnerRouter,
-    link: ++RouterView.increment_cursor,
+    editLink: ++RouterView.increment_cursor,
     list: [],
   },
 ];
@@ -124,13 +142,13 @@ Layout.list = [
       align: "top",
     },
     rangeFlag: RangeEnum.ComponentInner,
-    link: ++Layout.increment_cursor,
+    editLink: ++Layout.increment_cursor,
     list: [
       {
         componentTag: "el-col",
         attrs: {},
         rangeFlag: RangeEnum.ComponentInner,
-        link: ++Layout.increment_cursor,
+        editLink: ++Layout.increment_cursor,
         list: [new SlotWrapper(++Layout.increment_cursor)],
       },
     ],
@@ -143,7 +161,7 @@ Layout.list = [
       align: "top",
     },
     rangeFlag: RangeEnum.ComponentInner,
-    link: ++Layout.increment_cursor,
+    editLink: ++Layout.increment_cursor,
     list: [
       {
         componentTag: "el-col",
@@ -154,7 +172,7 @@ Layout.list = [
           style: { height: "1Rem" },
         },
         rangeFlag: RangeEnum.INNER_ROUTER,
-        link: ++Layout.increment_cursor,
+        editLink: ++Layout.increment_cursor,
         list: [new SlotWrapper(++Layout.increment_cursor)],
       },
       {
@@ -165,7 +183,7 @@ Layout.list = [
           push: 0,
         },
         rangeFlag: RangeEnum.ComponentInner,
-        link: ++Layout.increment_cursor,
+        editLink: ++Layout.increment_cursor,
         list: [new SlotWrapper(++Layout.increment_cursor)],
       },
     ],
@@ -208,7 +226,7 @@ Menu.list = [
       router: true,
     },
     rangeFlag: RangeEnum.ComponentInner,
-    link: ++Menu.increment_cursor,
+    editLink: ++Menu.increment_cursor,
     list: [
       {
         componentTag: "el-menu-item",
@@ -217,7 +235,7 @@ Menu.list = [
         },
         text: "Processing Center",
         rangeFlag: RangeEnum.ComponentInner,
-        link: ++Menu.increment_cursor,
+        editLink: ++Menu.increment_cursor,
         list: [],
       },
       {
@@ -226,7 +244,7 @@ Menu.list = [
           index: "2",
         },
         rangeFlag: RangeEnum.ComponentInner,
-        link: ++Menu.increment_cursor,
+        editLink: ++Menu.increment_cursor,
         list: [
           {
             componentTag: "template",
@@ -235,7 +253,7 @@ Menu.list = [
             },
             text: "Workspace",
             rangeFlag: RangeEnum.ComponentInnerSlot,
-            link: ++Menu.increment_cursor,
+            editLink: ++Menu.increment_cursor,
             list: [],
           },
 
@@ -246,7 +264,7 @@ Menu.list = [
             },
             text: "item one",
             rangeFlag: RangeEnum.ComponentInner,
-            link: ++Menu.increment_cursor,
+            editLink: ++Menu.increment_cursor,
             list: [],
           },
           {
@@ -256,7 +274,7 @@ Menu.list = [
             },
             text: "item two",
             rangeFlag: RangeEnum.ComponentInner,
-            link: ++Menu.increment_cursor,
+            editLink: ++Menu.increment_cursor,
             list: [],
           },
         ],
@@ -269,7 +287,7 @@ Menu.list = [
         },
         text: "Info",
         rangeFlag: RangeEnum.ComponentInner,
-        link: ++Menu.increment_cursor,
+        editLink: ++Menu.increment_cursor,
         list: [],
       },
       {
@@ -279,7 +297,7 @@ Menu.list = [
         },
         text: "Orders",
         rangeFlag: RangeEnum.ComponentInner,
-        link: ++Menu.increment_cursor,
+        editLink: ++Menu.increment_cursor,
         list: [],
       },
     ],
@@ -328,7 +346,7 @@ Table.list = [
       data: Table.defaultData,
     },
     rangeFlag: RangeEnum.ComponentInner,
-    link: ++Table.increment_cursor,
+    editLink: ++Table.increment_cursor,
 
     list: [
       {
@@ -340,7 +358,7 @@ Table.list = [
           width: "250",
         },
         rangeFlag: RangeEnum.ComponentInner,
-        link: ++Table.increment_cursor,
+        editLink: ++Table.increment_cursor,
         list: [],
       },
       {
@@ -351,7 +369,7 @@ Table.list = [
           width: "200",
         },
         rangeFlag: RangeEnum.ComponentInner,
-        link: ++Table.increment_cursor,
+        editLink: ++Table.increment_cursor,
         list: [],
       },
       {
@@ -362,7 +380,7 @@ Table.list = [
           width: "600",
         },
         rangeFlag: RangeEnum.ComponentInner,
-        link: ++Table.increment_cursor,
+        editLink: ++Table.increment_cursor,
         list: [],
       },
 
@@ -374,7 +392,7 @@ Table.list = [
           width: "120",
         },
         rangeFlag: RangeEnum.ComponentInner,
-        link: ++Table.increment_cursor,
+        editLink: ++Table.increment_cursor,
         list: [
           {
             componentTag: "template",
@@ -383,7 +401,7 @@ Table.list = [
               "#default": "row",
             },
             rangeFlag: RangeEnum.ComponentInnerSlot,
-            link: ++Table.increment_cursor,
+            editLink: ++Table.increment_cursor,
             list: [
               {
                 componentTag: "el-button",
@@ -395,7 +413,7 @@ Table.list = [
                 text: "Detail",
                 methods: [{ evenType: "click", refKey: "handleClick" }],
                 rangeFlag: RangeEnum.ComponentInner,
-                link: ++Table.increment_cursor,
+                editLink: ++Table.increment_cursor,
                 list: [],
               },
               {
@@ -407,7 +425,7 @@ Table.list = [
                 },
                 text: "Edit",
                 rangeFlag: RangeEnum.ComponentInner,
-                link: ++Table.increment_cursor,
+                editLink: ++Table.increment_cursor,
                 list: [],
               },
             ],

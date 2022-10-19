@@ -7,6 +7,7 @@ export enum MsgType {
   drop = "drop",
   dragleave = "dragleave",
   Edit = "edit",
+  SAVE = "SAVE",
 }
 
 export class MsgDto {

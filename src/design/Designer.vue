@@ -67,7 +67,7 @@
     <el-container>
       <el-header
         >Header
-        <el-button type="primary">保存</el-button>
+        <el-button type="primary" @click="saveDesignData">保存</el-button>
       </el-header>
       <el-main>
         <div style="position: relative; height: 100%; width: 100%">
@@ -116,7 +116,7 @@ export default defineComponent({
     metadata: null,
     designUrl: {
       type: String,
-      default: "http://localhost:5173/render",
+      default: "http://localhost:5173",
     },
   },
   components: { ComEditWrapper },
@@ -169,6 +169,14 @@ export default defineComponent({
         this.messageEvent!.origin
       );
     },
+    saveDesignData() {
+      // debugger;
+      this.messageEvent!.source!.postMessage(
+        new MsgDto(MsgType.SAVE, undefined, undefined),
+        this.messageEvent!.origin
+      );
+    },
+
     test() {
       console.log(window.name);
     },
