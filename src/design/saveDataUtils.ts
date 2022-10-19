@@ -27,7 +27,7 @@ export const queryData = (registName: string): RenderComponentProps => {
 /**
  *
  * @param fullPath
- * @returns 当前路由及默认的子级路由
+ * @returns key 路由注册名字， 当前路由及默认的子级路由
  */
 export const queryAllData = (
   fullPath: string
@@ -35,7 +35,7 @@ export const queryAllData = (
   const data = new Map<string, RenderComponentProps>();
   for (let index = 0; index < localStorage.length; index++) {
     const key = localStorage.key(index)!;
-    if (key == fullPath || (key + ":").startsWith(fullPath)) {
+    if (key == fullPath || key.startsWith(fullPath + ":")) {
       data.set(key, JSON.parse(localStorage.getItem(key)!));
     }
   }

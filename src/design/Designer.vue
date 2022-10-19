@@ -124,15 +124,16 @@ export default defineComponent({
   data() {
     return {
       activeTabName: "componentChoose",
-      origin: "",
+      // iframeWindow: undefined,
+      // origin: "",
       // type: "",
       componentData: new ComponentHead("", RangeEnum.UP_DOWN),
-      messageEvent: null as MessageEvent | null,
       // editData: {},
     };
   },
   mounted() {
     const __this = this;
+
     //接收消息
     window.onmessage = (event: MessageEvent) => {
       const msgDto = event.data as MsgDto;
@@ -145,8 +146,8 @@ export default defineComponent({
       ) {
         return;
       }
-      __this.origin = event.origin;
-      __this.messageEvent = event;
+      // __this.origin = event.origin;
+      // __this.messageEvent = event;
       // debugger;
       switch (msgDto.operateType) {
         case MsgType.dragover:
@@ -164,16 +165,20 @@ export default defineComponent({
   methods: {
     updateEditData() {
       // debugger;
-      this.messageEvent!.source!.postMessage(
+      const w = document.getElementById("designPanelIframe")!
+        .contentWindow as Window;
+      w.postMessage(
         new MsgDto(MsgType.Edit, undefined, cloneData(this.componentData)),
-        this.messageEvent!.origin
+        this.designUrl
       );
     },
     saveDesignData() {
       // debugger;
-      this.messageEvent!.source!.postMessage(
+      const w = document.getElementById("designPanelIframe")!
+        .contentWindow as Window;
+      w.postMessage(
         new MsgDto(MsgType.SAVE, undefined, undefined),
-        this.messageEvent!.origin
+        this.designUrl
       );
     },
 

@@ -54,42 +54,13 @@ const router = createRouter({
   ],
 });
 
-//加载路由数据。
-// for (let index = 0; index < localStorage.length; index++) {
-//   const element = localStorage.key(index);
-
-// }
-
-// localStorage.key
 router.beforeEach((to, from) => {
-  const renderStore = useRenderStore();
-  const renderMap = renderStore.renderMap;
   // 初始化从后台
-  // if (a) {
-  //   const newRouter = {
-  //     path: "/",
-  //     name: "/",
-  //     components: { default: RenderDesign },
-  //     //新路由数据
-  //     props: renderStore.getAndInitData("/"),
-  //   };
-  //   router.addRoute(newRouter);
-
-  //   const newRouter2 = {
-  //     path: "/",
-  //     name: "/:default",
-  //     components: { default: RenderDesign },
-  //     //新路由数据
-  //     props: renderStore.getAndInitData("/", "default"),
-  //   };
-  //   router.addRoute("/", newRouter2);
-  // }
-  // a = false;
   const matched = to.matched;
   if (matched.length == 0) {
     //由最近的路由来开始新的页面
     // 初始化从后台
-    const fullPath = to.fullPath;
+    const fullPath = to.fullPath as string;
     const allData = queryAllData(fullPath);
     if (allData.size == 0) {
       //没新建一个顶层路由
@@ -99,82 +70,92 @@ router.beforeEach((to, from) => {
         viewName: "default",
         level: 0,
       };
-      allData.set(fullPath, {
+      allData.set(fullPath + ":0", {
         default: {
           renderData: startRenderData,
         },
       });
     }
 
-    //寻找父路由
-    let parentPath = fullPath.substring(0, fullPath.lastIndexOf("/"));
-    while (parentPath != "") {
-      if (renderMap.has(parentPath)) {
-        break;
-      }
-      parentPath = parentPath.substring(0, parentPath.lastIndexOf("/"));
-    }
-
     //默认子路由可能深度嵌套
     //解析当前路由
-    const newRouterMap = new Map<number,any>();
+    const renderMap = useRenderStore().renderMap;
+    const newRouterMap = new Map<number, any>();
     allData.forEach((value, key) => {
-      // value
       // const routerDesc = Object.entries(value)[0][1].renderData.routerDesc;
       const components = {} as { [key: string]: Component };
-      let level=null;
+      let level = null;
       for (const key in value) {
         components[key] = RenderDesign;
         level = value[key].renderData.routerDesc!.level;
       }
+      const registName = fullPath + ":" + level;
+      renderMap.set(registName, value);
       const newRouter = {
         path: fullPath,
-        name: fullPath+":"+level,
+        name: registName,
         components: components,
         //新路由数据
-        props: value,
+        props: renderMap.get(registName),
       };
-      newRouterMap.set(level!,newRouter)
+      newRouterMap.set(level!, newRouter);
     });
 
+    //寻找父路由
+    let parentPath = fullPath.substring(0, fullPath.lastIndexOf("/"));
+    while (parentPath != "") {
+      if (renderMap.has(parentPath + ":0")) {
+        break;
+      }
+      parentPath = parentPath.substring(0, parentPath.lastIndexOf("/"));
+    }
     //注册路由
-    let parentRegistName=parentPath==""?"":parentPath+":0"
-    // if (parentPath == "") {
-    //   router.addRoute(newRouter);
-    // }
+    let parentRegistName = parentPath == "" ? "" : parentPath + ":0";
     for (let index = 0; index < newRouterMap.size; index++) {
       const newRouter = newRouterMap.get(index);
       if (parentRegistName == "") {
         router.addRoute(newRouter);
       } else {
-        router.addRoute(parentPath, newRouter);
+        router.addRoute(parentRegistName, newRouter);
       }
-      parentRegistName=
+      parentRegistName = newRouter.name;
     }
-
+    return fullPath;
   }
 });
 
 /**添加一个新路由作为原来的子路由默认 */
-export const addInitChildRoute = () => {
+export const addInitChildRoute = (root: ComponentHead) => {
+  //寻找路由深度
+  let levelParent = 0;
+  if (root._preRouteLink) {
+    levelParent = root._preRouteLink._root!.routerDesc!.level;
+  }
   // debugger;
   console.log("当前路由", router.currentRoute);
   const cr = router.currentRoute.value;
   const renderStore = useRenderStore();
-  const viewName = "default";
+  const renderMap = renderStore.renderMap;
+  const fullPath = cr.fullPath;
 
-  const renderData = renderStore.getAndInitData(cr.fullPath, viewName);
+  const startRenderData = clonStartDesign();
+  startRenderData.routerDesc = {
+    fullPath,
+    viewName: "default",
+    level: levelParent + 1,
+  };
 
+  const registName = fullPath + ":" + startRenderData.routerDesc.level;
+  renderMap.set(registName, { default: { renderData: startRenderData } });
   const newRouter = {
-    path: cr.fullPath,
-    name: cr.fullPath + ":" + viewName,
+    path: fullPath,
+    name: registName,
     components: { default: RenderDesign },
     //新路由数据
-    props: renderData,
+    props: renderMap.get(registName),
   };
 
   router.addRoute(cr.name!, newRouter);
-  // router.replace({ path: cr.fullPath });
 };
 
 router.afterEach((to, from, failure) => {

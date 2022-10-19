@@ -19,42 +19,43 @@ export const useRenderStore = defineStore("render", () => {
   // const renderData = ref(data);
 
   // const renderMap = reactive(new Map<string,Map<string, ComponentHead>>());
+  //key 路由注册名
   const renderMap = reactive(new Map<string, RenderComponentProps>());
 
-  const getAndInitData = (
-    fullPath: string,
-    viewName?: string //没有这个参数代表不是新建子路由
-  ): RenderComponentProps => {
-    // debugger;
-    let registName = fullPath;
-    if (viewName) {
-      registName = fullPath + ":" + viewName;
-    } else {
-      viewName = "default";
-    }
+  // const getAndInitData = (
+  //   fullPath: string,
+  //   viewName?: string //没有这个参数代表不是新建子路由
+  // ): RenderComponentProps => {
+  //   // debugger;
+  //   let registName = fullPath;
+  //   if (viewName) {
+  //     registName = fullPath + ":" + viewName;
+  //   } else {
+  //     viewName = "default";
+  //   }
 
-    let dataObj = renderMap.get(registName);
-    if (!dataObj) {
-      dataObj = queryData(registName);
-      if (!dataObj) {
-        const startRenderData = clonStartDesign();
-        startRenderData.routerDesc = {
-          fullPath,
-          viewName,
-          registName,
-        };
-        dataObj = {
-          default: {
-            renderData: startRenderData,
-          },
-        };
-      }
-      renderMap.set(registName, dataObj);
-    }
-    return renderMap.get(registName)!;
-  };
+  //   let dataObj = renderMap.get(registName);
+  //   if (!dataObj) {
+  //     dataObj = queryData(registName);
+  //     if (!dataObj) {
+  //       const startRenderData = clonStartDesign();
+  //       startRenderData.routerDesc = {
+  //         fullPath,
+  //         viewName,
+  //         registName,
+  //       };
+  //       dataObj = {
+  //         default: {
+  //           renderData: startRenderData,
+  //         },
+  //       };
+  //     }
+  //     renderMap.set(registName, dataObj);
+  //   }
+  //   return renderMap.get(registName)!;
+  // };
 
   const changeDataMap = reactive(new Map<string, ComponentHead>());
   // const getData = () => {};
-  return { renderMap, getAndInitData, changeDataMap };
+  return { renderMap, changeDataMap };
 });

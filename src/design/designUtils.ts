@@ -144,7 +144,7 @@ export const dropHandler = (
   if (dragNode.rangeFlag & RangeEnum.ROUTER) {
     // const rootRouter = dropInfo.dropNode._root?.routerDesc;
     //第一次进入路由
-    addInitChildRoute();
+    addInitChildRoute(dropInfo.dropNode._root!);
     // return;
   }
 
