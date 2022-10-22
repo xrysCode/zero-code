@@ -141,17 +141,19 @@ export const dropHandler = (
     preDragNode.list.splice(removeIndex, 1);
   }
 
-  if (dragNode.rangeFlag & RangeEnum.ROUTER) {
-    // const rootRouter = dropInfo.dropNode._root?.routerDesc;
-    //第一次进入路由
-    addInitChildRoute(dropInfo.dropNode._root!);
-    // return;
-  }
-
   if (dropInfo.dropType == DropType.inner) {
     dropComponentData.list.push(dragNode);
+
+    //拖动节点是路由初始他，并刷新路由
+    if (dragNode.rangeFlag & RangeEnum.ROUTER) {
+      // const rootRouter = dropInfo.dropNode._root?.routerDesc;
+      //第一次进入路由, 只能通过外部进入，不能通过路由标签进去
+      addInitChildRoute(dropInfo.dropNode);
+      // return;
+    }
     return;
   }
+
   //找到父级的存放集合
   const preDropList = dropInfo.dropNode._preNode!.list;
   const i = preDropList.indexOf(dropComponentData);

@@ -4,7 +4,13 @@ import Designer from "@/design/Designer.vue";
 import RenderPortal from "@/design/RenderPortal.vue";
 import RenderDesign from "@/design/RenderDesign.vue";
 import { useRenderStore } from "@/stores/render";
-import { clonStartDesign, type ComponentHead } from "@/design/componentDesc";
+import {
+  clonStartDesign,
+  RouterView,
+  Layout,
+  // StartDesign,
+  type ComponentHead,
+} from "@/design/componentDesc";
 import { queryAllData } from "@/design/saveDataUtils";
 import type { Component } from "vue";
 
@@ -46,11 +52,27 @@ const router = createRouter({
       name: "designer",
       component: Designer,
     },
-    {
-      path: "/test",
-      name: "test",
-      component: () => import("@/design/comWrapper/Test.vue"),
-    },
+    // {
+    //   path: "/test",
+    //   name: "test",
+    //   component: () => import("@/design/comWrapper/Test.vue"),
+    // },
+    // {
+    //   path: "/test",
+    //   name: "test",
+    //   component: RenderDesign,
+    //   props: { renderData: { ...RouterView, fullPath: "/render" } },
+    //   children: [
+    //     {
+    //       path: "",
+    //       name: "/render:1",
+    //       components: { default: RenderDesign },
+    //       props: {
+    //         default: { renderData: { ...Layout } },
+    //       },
+    //     },
+    //   ],
+    // },
   ],
 });
 
@@ -58,10 +80,11 @@ router.beforeEach((to, from) => {
   // 初始化从后台
   const matched = to.matched;
   if (matched.length == 0) {
-    //由最近的路由来开始新的页面
-    // 初始化从后台
     const fullPath = to.fullPath as string;
     const allData = queryAllData(fullPath);
+    //由最近的路由来开始新的页面
+    // 初始化从后台
+
     if (allData.size == 0) {
       //没新建一个顶层路由
       const startRenderData = clonStartDesign();
@@ -120,22 +143,22 @@ router.beforeEach((to, from) => {
       }
       parentRegistName = newRouter.name;
     }
-    return fullPath;
+    router.replace({ path: fullPath });
+    // return fullPath;
   }
 });
 
 /**添加一个新路由作为原来的子路由默认 */
-export const addInitChildRoute = (root: ComponentHead) => {
+export const addInitChildRoute = (parentRouter: ComponentHead) => {
   //寻找路由深度
   let levelParent = 0;
-  if (root._preRouteLink) {
-    levelParent = root._preRouteLink._root!.routerDesc!.level;
+  if (parentRouter._preRouteLink) {
+    levelParent = parentRouter._preRouteLink._root!.routerDesc!.level;
   }
   // debugger;
   console.log("当前路由", router.currentRoute);
   const cr = router.currentRoute.value;
-  const renderStore = useRenderStore();
-  const renderMap = renderStore.renderMap;
+  const renderMap = useRenderStore().renderMap;
   const fullPath = cr.fullPath;
 
   const startRenderData = clonStartDesign();
@@ -144,6 +167,8 @@ export const addInitChildRoute = (root: ComponentHead) => {
     viewName: "default",
     level: levelParent + 1,
   };
+  startRenderData._preRouteLink = parentRouter;
+  parentRouter._nextRouteLink = startRenderData;
 
   const registName = fullPath + ":" + startRenderData.routerDesc.level;
   renderMap.set(registName, { default: { renderData: startRenderData } });
@@ -154,8 +179,9 @@ export const addInitChildRoute = (root: ComponentHead) => {
     //新路由数据
     props: renderMap.get(registName),
   };
-
+  // parentRouter._nextRouteLink=
   router.addRoute(cr.name!, newRouter);
+  router.replace({ path: fullPath });
 };
 
 router.afterEach((to, from, failure) => {

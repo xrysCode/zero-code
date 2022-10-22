@@ -20,7 +20,7 @@ export enum RangeEnum {
   ComponentInner = NONE,
   ComponentInnerSlot = SLOT_INNER,
   ComponentRouter = ROUTER | UP_INNER_DOWN | START,
-  ComponentInnerRouter = NONE,
+  ComponentInnerRouter = ROUTER,
 }
 
 //组合组件和插槽都用div包裹。以便产生线框
@@ -64,8 +64,8 @@ export class ComponentHead {
   _preNode?: ComDesc | ComponentHead; //组件连通
   _root?: ComponentHead;
 
-  _preRouteLink?: ComDesc | ComponentHead; //路由连通
-  _nextRouteLink?: ComDesc | ComponentHead; //路由连通
+  _preRouteLink?: ComponentHead; //路由连通
+  _nextRouteLink?: ComponentHead; //路由连通
   // _rootLink?: ComponentHead;
   // _root?: ComponentHead;
   editLink: number = 0; //编辑连接
@@ -171,7 +171,7 @@ Layout.list = [
           push: 0,
           style: { height: "1Rem" },
         },
-        rangeFlag: RangeEnum.INNER_ROUTER,
+        rangeFlag: RangeEnum.ComponentInner,
         editLink: ++Layout.increment_cursor,
         list: [new SlotWrapper(++Layout.increment_cursor)],
       },
@@ -231,7 +231,7 @@ Menu.list = [
       {
         componentTag: "el-menu-item",
         attrs: {
-          index: "/render/inner",
+          index: "/inner",
         },
         text: "Processing Center",
         rangeFlag: RangeEnum.ComponentInner,

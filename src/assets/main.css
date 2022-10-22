@@ -26,7 +26,7 @@ html,
   height: 100%; */
 }
 .design-router-box {
-  outline: 1.5px dashed rgb(223, 25, 25);
+  outline: 1.5px solid rgb(223, 25, 25);
   /* min-height: 1.5em; */
   /* height: 100%; */
 }

@@ -63,7 +63,8 @@ export default defineComponent({
             );
         }
       }
-      if (data.rangeFlag & RangeEnum.ROUTER) {
+      //路由包装才给包装的样式
+      if (data.rangeFlag == RangeEnum.ComponentRouter) {
         mixinAttrs.class.push("design-router-box");
       }
       if (data.rangeFlag & RangeEnum.SLOT_OUT) {
@@ -77,10 +78,7 @@ export default defineComponent({
           DragHandler.dragstartHandler(ev, _renderData);
       }
       //拖拽浮动效果
-      if (
-        data.rangeFlag &
-        (RangeEnum.UP_DOWN | RangeEnum.UP_INNER_DOWN | RangeEnum.ROUTER)
-      ) {
+      if (data.rangeFlag & (RangeEnum.UP_DOWN | RangeEnum.UP_INNER_DOWN)) {
         mixinAttrs.ondragover = (ev: DragEvent) =>
           DragHandler.dragoverHandler(ev, data as ComponentHead);
         mixinAttrs.ondragleave = (ev: DragEvent) =>
@@ -126,15 +124,14 @@ export default defineComponent({
         item._root = preData?._root;
 
         const newAttrs = mixinAttrs(item, slotArgs);
-
-        const childSoltFuns = {} as { [name: string]: any };
-
         if (item.rangeFlag & RangeEnum.ROUTER) {
           return h(
             resolveComponent(item.componentTag) as ComponentHead,
             newAttrs
           );
         }
+
+        const childSoltFuns = {} as { [name: string]: any };
         if (item.rangeFlag & RangeEnum.SLOT_INNER) {
           //内部插槽
           for (const key in item.attrs) {
@@ -173,6 +170,7 @@ export default defineComponent({
     }
 
     const newAttrs = mixinAttrs(this.renderData, undefined);
+    // <div>完成</div>
     return (
       <div {...newAttrs} class={this.isActive ? "design-active-box" : ""}>
         {this.isActive ? (
