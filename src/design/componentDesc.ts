@@ -64,8 +64,8 @@ export class ComponentHead {
   _preNode?: ComDesc | ComponentHead; //组件连通
   _root?: ComponentHead;
 
-  _preRouteLink?: ComponentHead; //路由连通
-  _nextRouteLink?: ComponentHead; //路由连通
+  // _preRouteLink?: ComponentHead; //路由连通 使用渲染的数据
+  // _nextRouteLink?: ComponentHead; //路由连通
   // _rootLink?: ComponentHead;
   // _root?: ComponentHead;
   editLink: number = 0; //编辑连接
@@ -231,7 +231,7 @@ Menu.list = [
       {
         componentTag: "el-menu-item",
         attrs: {
-          index: "/inner",
+          index: "/a/b",
         },
         text: "Processing Center",
         rangeFlag: RangeEnum.ComponentInner,
@@ -293,7 +293,7 @@ Menu.list = [
       {
         componentTag: "el-menu-item",
         attrs: {
-          index: "/a/d",
+          index: "/a",
         },
         text: "Orders",
         rangeFlag: RangeEnum.ComponentInner,

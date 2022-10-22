@@ -146,6 +146,8 @@ router.beforeEach((to, from) => {
     router.replace({ path: fullPath });
     // return fullPath;
   }
+
+  //切换路由连接路由
 });
 
 /**添加一个新路由作为原来的子路由默认 */
@@ -167,8 +169,8 @@ export const addInitChildRoute = (parentRouter: ComponentHead) => {
     viewName: "default",
     level: levelParent + 1,
   };
-  startRenderData._preRouteLink = parentRouter;
-  parentRouter._nextRouteLink = startRenderData;
+  // startRenderData._preRouteLink = parentRouter;
+  // parentRouter._nextRouteLink = startRenderData;
 
   const registName = fullPath + ":" + startRenderData.routerDesc.level;
   renderMap.set(registName, { default: { renderData: startRenderData } });

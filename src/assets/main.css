@@ -37,10 +37,19 @@ div.design-active-box {
   z-index: 10;
 }
 
-.design-operate {
+.design-operate-right {
   position: absolute;
   right: 0;
   bottom: 0;
+  height: 28px;
+  line-height: 28px;
+  background: var(--el-color-primary);
+  z-index: 10;
+}
+.design-operate-left {
+  position: absolute;
+  top: 0;
+  left: 0;
   height: 28px;
   line-height: 28px;
   background: var(--el-color-primary);
