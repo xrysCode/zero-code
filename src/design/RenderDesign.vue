@@ -134,7 +134,7 @@ export default defineComponent({
 
         const childSoltFuns = {} as { [name: string]: any };
         if (item.rangeFlag & RangeEnum.SLOT_INNER) {
-          //内部插槽
+          //内部插槽，提取出来。
           for (const key in item.attrs) {
             //去掉#
             childSoltFuns[key.substr(1)] = (slotArgs: object) => {
