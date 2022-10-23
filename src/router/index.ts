@@ -7,7 +7,7 @@ import { useRenderStore } from "@/stores/render";
 import {
   clonStartDesign,
   RouterView,
-  Layout,
+  Table,
   // StartDesign,
   type ComponentHead,
 } from "@/design/componentDesc";
@@ -15,6 +15,9 @@ import { queryAllData } from "@/design/saveDataUtils";
 import type { Component } from "vue";
 
 // const renderStore2 = useRenderStore();
+
+const startRenderData = clonStartDesign();
+startRenderData.list.push(Table);
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -57,22 +60,22 @@ const router = createRouter({
     //   name: "test",
     //   component: () => import("@/design/comWrapper/Test.vue"),
     // },
-    // {
-    //   path: "/test",
-    //   name: "test",
-    //   component: RenderDesign,
-    //   props: { renderData: { ...RouterView, fullPath: "/render" } },
-    //   children: [
-    //     {
-    //       path: "",
-    //       name: "/render:1",
-    //       components: { default: RenderDesign },
-    //       props: {
-    //         default: { renderData: { ...Layout } },
-    //       },
-    //     },
-    //   ],
-    // },
+    {
+      path: "/test",
+      name: "test",
+      component: RenderDesign,
+      props: { renderData: { ...startRenderData, fullPath: "/render" } },
+      //   children: [
+      //     {
+      //       path: "",
+      //       name: "/render:1",
+      //       components: { default: RenderDesign },
+      //       props: {
+      //         default: { renderData: { ...Layout } },
+      //       },
+      //     },
+      //   ],
+    },
   ],
 });
 

@@ -66,8 +66,6 @@ export class ComponentHead {
 
   // _preRouteLink?: ComponentHead; //路由连通 使用渲染的数据
   // _nextRouteLink?: ComponentHead; //路由连通
-  // _rootLink?: ComponentHead;
-  // _root?: ComponentHead;
   editLink: number = 0; //编辑连接
   increment_cursor: number = 0;
   constructor(type: string, rangeFlag: RangeEnum, name?: string) {
@@ -304,7 +302,11 @@ Menu.list = [
   },
 ];
 
-export const Table = new ComponentHead("Table", RangeEnum.UP_DOWN, "表格");
+export const Table = new ComponentHead(
+  "Table",
+  RangeEnum.ComponentHead,
+  "表格"
+);
 Table.defaultData = [
   {
     date: "2016-05-03",

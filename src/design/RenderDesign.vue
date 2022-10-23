@@ -108,66 +108,64 @@ export default defineComponent({
     }
 
     function childDepthRender(
-      dataList: Array<ComDesc | ComponentHead>,
-      preData?: ComDesc | ComponentHead,
+      data: ComDesc | ComponentHead,
+      preData: ComDesc | ComponentHead,
       slotArgs?: object
-    ): VNode[] {
-      if (!dataList || dataList.length == 0) {
-        return [];
+      // 函数
+    ): VNode {
+      data._preNode = preData;
+      data._root = preData?._root;
+
+      //不是自己，且遇到下一次 使用自身渲染
+      if (data.rangeFlag & RangeEnum.START) {
+        return h(selfCom, { renderData: data, preData: preData });
       }
-      return dataList.map((item) => {
-        //不是自己，且遇到下一次 使用自身渲染
-        if (item.rangeFlag & RangeEnum.START) {
-          return h(selfCom, { renderData: item, preData: preData });
-        }
-        item = item as ComDesc;
-        item._preNode = preData;
-        item._root = preData?._root;
 
-        const newAttrs = mixinAttrs(item, slotArgs);
-        if (item.rangeFlag & RangeEnum.ROUTER) {
-          return h(
-            resolveComponent(item.componentTag) as ComponentHead,
-            newAttrs
-          );
-        }
+      data = data as ComDesc;
+      const newAttrs = mixinAttrs(data, slotArgs);
+      if (data.rangeFlag & RangeEnum.ROUTER) {
+        return h(resolveComponent(data.componentTag), newAttrs);
+      }
 
-        const childSoltFuns = {} as { [name: string]: any };
+      //组合插槽先
+      const childSoltFuns = {} as { [name: string]: Function };
+      const defaultSlots = [] as VNode[];
+      const dataList = data.list;
+      for (let index = 0; index < dataList.length; index++) {
+        const item = dataList[index] as ComDesc;
         if (item.rangeFlag & RangeEnum.SLOT_INNER) {
           //内部插槽，提取出来。
           for (const key in item.attrs) {
             //去掉#
             childSoltFuns[key.substr(1)] = (slotArgs: object) => {
               const slotArr = [];
-              const text = (item as ComDesc).text;
-              if (text) {
-                slotArr.push(text);
+              if (item.text) {
+                slotArr.push(item.text);
               }
               //所有的下级提级渲染
-              slotArr.push(...childDepthRender(item.list, item, slotArgs));
+              item.list.forEach((c) => {
+                slotArr.push(childDepthRender(c, item, slotArgs));
+              });
               return slotArr;
             };
           }
-        } else {
-          //其他都是默认放入
-          //当前级的文本
-          childSoltFuns.default = () => {
-            const defaultSlots = [] as VNode[];
-            const text = (item as ComDesc).text;
-            if (text) {
-              defaultSlots.push(_createTextVNode(text));
-            }
-            defaultSlots.push(...childDepthRender(item.list, item, slotArgs));
-            return defaultSlots;
-          };
+          continue;
         }
 
-        return h(
-          resolveComponent(item.componentTag) as ComponentHead,
-          newAttrs,
-          childSoltFuns
-        );
-      });
+        defaultSlots.push(childDepthRender(item, data, slotArgs));
+      }
+      //其他都是默认放入
+      if (data.text) {
+        defaultSlots.push(_createTextVNode(data.text));
+      }
+      if (defaultSlots.length > 0) {
+        childSoltFuns.default = () => defaultSlots;
+      }
+      return h(
+        resolveComponent(data.componentTag) as ComponentHead,
+        newAttrs,
+        childSoltFuns
+      );
     }
 
     const newAttrs = mixinAttrs(this.renderData, undefined);
@@ -206,7 +204,9 @@ export default defineComponent({
             />
           </div>
         ) : undefined}
-        {childDepthRender(_renderData.list, _renderData)}
+        {_renderData.list.map((item) => {
+          return childDepthRender(item, _renderData);
+        })}
       </div>
     );
   },
