@@ -116,7 +116,7 @@ export default defineComponent({
     metadata: null,
     designUrl: {
       type: String,
-      default: "http://localhost:5173/a",
+      default: "http://localhost:5173/index",
     },
   },
   components: { ComEditWrapper },

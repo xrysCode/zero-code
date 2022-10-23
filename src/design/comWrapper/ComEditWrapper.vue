@@ -1,6 +1,6 @@
 <template>
   <el-tabs v-model="componentConfigData.activeTabName">
-    <el-tab-pane label="组件设置" name="componentConfig">
+    <el-tab-pane label="高级设置" name="componentConfig">
       <!-- :allow-drop="allowDrop"
             :allow-drag="allowDrag" -->
       <el-tree
@@ -8,13 +8,21 @@
         draggable
         default-expand-all
         node-key="link"
-        :props="defaultProps"
+        :props="{ children: 'list' }"
       >
         <template #default="{ node, data }">
           <span class="custom-tree-node">
-            <span>{{ data.componentTag }}</span>
+            <span>{{ data.componentTag.replaceAll("-", "_") }}</span>
             <span>
-              <a @click="openDialogHander(data)"> edit </a>
+              <a style="margin-left: 8px" @click="openDialogHander(data, true)">
+                新增
+              </a>
+              <a
+                style="margin-left: 8px"
+                @click="openDialogHander(data, false)"
+              >
+                编辑
+              </a>
             </span>
           </span>
         </template>
@@ -26,6 +34,22 @@
     <el-dialog v-model="componentConfigData.openDialog" title="数据编辑">
       <el-form :model=" (componentConfigData.editData as ComDesc).attrs">
         <el-form-item
+          v-for="(v, k) in editConfig[
+            componentConfigData.editData.componentTag.replaceAll('-', '_')
+          ].attrs"
+          :label="v.name"
+          :key="v.property"
+        >
+          <el-input
+            v-model="(componentConfigData.editData as ComDesc).attrs[v.property]"
+          />
+          <!-- <el-input-number
+            v-else
+            v-model="(componentConfigData.editData as ComDesc).attrs[k]"
+          /> -->
+        </el-form-item>
+
+        <!-- <el-form-item
           v-for="v,k in (componentConfigData.editData as ComDesc).attrs "
           :label="k"
           :key="k"
@@ -37,8 +61,8 @@
           <el-input-number
             v-else
             v-model="(componentConfigData.editData as ComDesc).attrs[k]"
-          />
-        </el-form-item>
+          /> 
+        </el-form-item>-->
       </el-form>
       <template #footer>
         <span class="dialog-footer">
@@ -55,22 +79,19 @@
 <script lang="ts" setup>
 import { onMounted, reactive, ref, watch, computed } from "vue";
 import { MsgDto, MsgType } from "../postMeaagae";
-// ComponentWrapper
 import {
   ComponentHead,
   RangeEnum,
   EditConfig,
   type ComDesc,
 } from "../componentDesc";
-import * as ComponentDesc from "@/design/componentDesc";
-// import { computed } from "@vue/reactivity";
+import type { IPropDesc } from "@/design/editConfig";
+import * as editConfig from "@/design/editConfig";
 
 const props = defineProps({
   componentData: { type: ComponentHead, required: true },
 });
 const emit = defineEmits(["updateEditData"]);
-
-const defaultProps = { children: "list", label: "componentTag" };
 
 const componentConfigData = reactive({
   activeTabName: "componentConfig",
@@ -78,7 +99,7 @@ const componentConfigData = reactive({
   editData: null as ComDesc | null,
 });
 
-const openDialogHander = (data: ComDesc) => {
+const openDialogHander = (data: ComDesc, isAdd: Boolean) => {
   componentConfigData.openDialog = true;
   componentConfigData.editData = data;
 };
@@ -103,3 +124,14 @@ watch(
   }
 ); // 默认：'pre'});
 </script>
+
+<style>
+.custom-tree-node {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 14px;
+  padding-right: 8px;
+}
+</style>

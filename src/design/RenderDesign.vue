@@ -173,16 +173,6 @@ export default defineComponent({
     return (
       <div {...newAttrs} class={this.isActive ? "design-active-box" : ""}>
         {this.isActive ? (
-          <div class={["design-operate-right"]}>
-            <delete
-              style="width: 1rem; height: 1rem; margin-right: 8px"
-              onClick={(ev: PointerEvent) =>
-                DragHandler.deleteHandler(ev, _renderData)
-              }
-            />
-          </div>
-        ) : undefined}
-        {this.isActive ? (
           <div class={["design-operate-left"]}>
             <top
               style="width: 1rem; height: 1rem; margin-right: 8px"
@@ -204,6 +194,17 @@ export default defineComponent({
             />
           </div>
         ) : undefined}
+        {this.isActive ? (
+          <div class={["design-operate-right"]}>
+            <delete
+              style="width: 1rem; height: 1rem; margin-right: 8px"
+              onClick={(ev: PointerEvent) =>
+                DragHandler.deleteHandler(ev, _renderData)
+              }
+            />
+          </div>
+        ) : undefined}
+
         {_renderData.list.map((item) => {
           return childDepthRender(item, _renderData);
         })}

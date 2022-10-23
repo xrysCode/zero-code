@@ -116,7 +116,6 @@ export const RouterView = new ComponentHead(
   RangeEnum.ComponentRouter,
   "路由出口"
 );
-// RouterView.attrs.class = ["design-router-box"];
 RouterView.list = [
   {
     componentTag: "RouterView",
@@ -187,7 +186,6 @@ Layout.list = [
     ],
   },
 ];
-// Layout.list[1].list[0].list[0].list.push(RouterView);
 
 export class EditConfig {
   type: string;
@@ -229,7 +227,7 @@ Menu.list = [
       {
         componentTag: "el-menu-item",
         attrs: {
-          index: "/a/b",
+          index: "/index/b",
         },
         text: "Processing Center",
         rangeFlag: RangeEnum.ComponentInner,
@@ -258,7 +256,7 @@ Menu.list = [
           {
             componentTag: "el-menu-item",
             attrs: {
-              index: "/a/a",
+              index: "/index/a",
             },
             text: "item one",
             rangeFlag: RangeEnum.ComponentInner,
@@ -268,7 +266,7 @@ Menu.list = [
           {
             componentTag: "el-menu-item",
             attrs: {
-              index: "/a/b",
+              index: "/index/b",
             },
             text: "item two",
             rangeFlag: RangeEnum.ComponentInner,
@@ -280,7 +278,7 @@ Menu.list = [
       {
         componentTag: "el-menu-item",
         attrs: {
-          index: "/a/c",
+          index: "/index/c",
           disabled: "",
         },
         text: "Info",
@@ -291,7 +289,7 @@ Menu.list = [
       {
         componentTag: "el-menu-item",
         attrs: {
-          index: "/a",
+          index: "/index",
         },
         text: "Orders",
         rangeFlag: RangeEnum.ComponentInner,
