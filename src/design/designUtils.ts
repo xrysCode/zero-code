@@ -28,6 +28,7 @@ export const dragstartHandler = (
   draggingNode: ComponentHead,
   isAdd: boolean = false
 ) => {
+  ev.stopPropagation();
   ev.dataTransfer!.setData("text", "");
   dropInfo.draggingNode = draggingNode;
   dropInfo.isAdd = isAdd;

@@ -13,6 +13,7 @@ import type { ComDesc } from "@/design/componentDesc";
 import { Layout, RangeEnum, ComponentHead } from "@/design/componentDesc";
 import { MsgDto, MsgType } from "./postMeaagae";
 import * as DragHandler from "./designUtils";
+import { ElMessage } from "element-plus";
 // import { Top } from "@element-plus/icons-vue/components";
 
 export default defineComponent({
@@ -74,7 +75,6 @@ export default defineComponent({
 
       //允许拖拽
       if (data.rangeFlag & RangeEnum.DRAG) {
-        mixinAttrs.draggable = true;
         mixinAttrs.onDragstart = (ev: DragEvent) =>
           DragHandler.dragstartHandler(ev, _renderData);
       }
@@ -169,28 +169,33 @@ export default defineComponent({
     }
 
     const newAttrs = mixinAttrs(this.renderData, undefined);
-    // <div>完成</div>
+    // <bottom
+    //           style="width: 1rem; height: 1rem; margin-right: 8px"
+    //           onClick={(ev: PointerEvent) =>
+    //             DragHandler.deleteHandler(ev, _renderData)
+    //           }
+    //         />
     return (
       <div {...newAttrs} class={this.isActive ? "design-active-box" : ""}>
         {this.isActive ? (
           <div class={["design-operate-left"]}>
             <top
               style="width: 1rem; height: 1rem; margin-right: 8px"
-              onClick={(ev: PointerEvent) =>
-                DragHandler.deleteHandler(ev, _renderData)
-              }
+              onClick={(ev: PointerEvent) => this.activeComponent(ev, "pre")}
             />
-            <bottom
-              style="width: 1rem; height: 1rem; margin-right: 8px"
-              onClick={(ev: PointerEvent) =>
-                DragHandler.deleteHandler(ev, _renderData)
-              }
-            />
+
             <rank
               style="width: 1rem; height: 1rem; margin-right: 8px"
-              onClick={(ev: PointerEvent) =>
-                DragHandler.deleteHandler(ev, _renderData)
+              onMousedown={(ev: PointerEvent) =>
+                (ev.target.parentElement.parentElement.draggable = true)
               }
+              onMouseleave={(ev: PointerEvent) => {
+                debugger;
+                this.isActive = true;
+                ev.target.parentElement.parentElement.removeAttribute(
+                  "draggable"
+                );
+              }}
             />
           </div>
         ) : undefined}
@@ -210,6 +215,38 @@ export default defineComponent({
         })}
       </div>
     );
+  },
+
+  methods: {
+    activeComponent(ev: PointerEvent, type: string) {
+      // this.isActive = !this.isActive;
+      let activeData = this.renderData;
+
+      let activeThis = this;
+      if (type == "pre") {
+        activeThis = activeThis.$parent;
+        while (activeThis) {
+          if (
+            activeThis.renderData &&
+            activeThis.renderData.rangeFlag & RangeEnum.START
+          ) {
+            activeData = activeThis.renderData;
+            break;
+          }
+          if (activeThis.$parent == null) {
+            break;
+          }
+          activeThis = activeThis.$parent;
+        }
+      }
+      if (activeThis.renderData != activeData) {
+        ElMessage("已无上一级.");
+        return;
+      }
+      DragHandler.clickHandler(ev, activeData, () => {
+        activeThis.isActive = !activeThis.isActive;
+      });
+    },
   },
 });
 </script>

@@ -1,5 +1,3 @@
-import type { list } from "postcss";
-
 // 组件整体-上下、路由-上内下、插槽-内
 export enum RangeEnum {
   ENTRY = 1 << 0, //入口
@@ -23,6 +21,12 @@ export enum RangeEnum {
   ComponentInnerRouter = ROUTER,
 }
 
+export enum EffectLinkEnum {
+  NONE = 1 << 0, //无效果
+  click = 1 << 1, //button
+  Hovering = 1 << 2, //悬浮
+}
+
 //组合组件和插槽都用div包裹。以便产生线框
 export interface ComDesc {
   componentTag: string;
@@ -33,6 +37,7 @@ export interface ComDesc {
 
   text?: string;
   methods?: [{ evenType: string; refKey: string }]; //引用methodDesc
+  effectLink?: EffectLinkEnum;
 
   _preNode?: ComDesc | ComponentHead;
   _root?: ComponentHead;
