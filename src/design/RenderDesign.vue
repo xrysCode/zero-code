@@ -183,14 +183,13 @@ export default defineComponent({
               style="width: 1rem; height: 1rem; margin-right: 8px"
               onClick={(ev: PointerEvent) => this.activeComponent(ev, "pre")}
             />
-
+            <edit style="width: 1rem; height: 1rem; margin-right: 8px" />
             <rank
               style="width: 1rem; height: 1rem; margin-right: 8px"
               onMousedown={(ev: PointerEvent) =>
                 (ev.target.parentElement.parentElement.draggable = true)
               }
               onMouseleave={(ev: PointerEvent) => {
-                debugger;
                 this.isActive = true;
                 ev.target.parentElement.parentElement.removeAttribute(
                   "draggable"

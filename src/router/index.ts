@@ -55,27 +55,27 @@ const router = createRouter({
       name: "designer",
       component: Designer,
     },
-    // {
-    //   path: "/test",
-    //   name: "test",
-    //   component: () => import("@/design/comWrapper/Test.vue"),
-    // },
     {
       path: "/test",
       name: "test",
-      component: RenderDesign,
-      props: { renderData: { ...startRenderData, fullPath: "/render" } },
-      //   children: [
-      //     {
-      //       path: "",
-      //       name: "/render:1",
-      //       components: { default: RenderDesign },
-      //       props: {
-      //         default: { renderData: { ...Layout } },
-      //       },
-      //     },
-      //   ],
+      component: () => import("@/design/comWrapper/TableEditer.vue"),
     },
+    // {
+    //   path: "/test",
+    //   name: "test",
+    //   component: RenderDesign,
+    //   props: { renderData: { ...startRenderData, fullPath: "/render" } },
+    //   children: [
+    //     {
+    //       path: "",
+    //       name: "/render:1",
+    //       components: { default: RenderDesign },
+    //       props: {
+    //         default: { renderData: { ...Layout } },
+    //       },
+    //     },
+    //   ],
+    // },
   ],
 });
 

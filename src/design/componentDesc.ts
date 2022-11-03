@@ -27,6 +27,13 @@ export enum EffectLinkEnum {
   Hovering = 1 << 2, //悬浮
 }
 
+export interface ApiDesc {
+  requestMethod: string;
+  uri: string;
+  parameters: string;
+  requestBody: any;
+}
+
 //组合组件和插槽都用div包裹。以便产生线框
 export interface ComDesc {
   componentTag: string;
@@ -63,7 +70,7 @@ export class ComponentHead {
   attrs: { [key: string]: any } = {};
   // props: object = {};
   defaultData?: object = {};
-  methodDesc?: { [key: string]: string };
+  methodDesc?: { [key: string]: string }; //key 事件
   list: Array<ComDesc | ComponentHead> = [];
 
   _preNode?: ComDesc | ComponentHead; //组件连通
@@ -96,14 +103,6 @@ export class SlotWrapper implements ComDesc {
   }
 }
 
-// export const StartDesign = new ComponentHead(
-//   "StartDesign",
-//   RangeEnum.ComponentPortal
-// );
-// StartDesign.attrs = {
-//   // class: ["design-component-box"],
-//   style: { height: "100%" },
-// };
 export const clonStartDesign = () => {
   const StartDesign = new ComponentHead(
     "StartDesign",
