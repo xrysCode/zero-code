@@ -1,17 +1,11 @@
 <script setup lang="ts">
-import { RouterLink, RouterView } from "vue-router";
-import HelloWorld from "./components/HelloWorld.vue";
+import { RouterLink, RouterView } from 'vue-router'
+import HelloWorld from './components/HelloWorld.vue'
 </script>
 
 <template>
-  <!-- <header>
-    <img
-      alt="Vue logo"
-      class="logo"
-      src="@/assets/logo.svg"
-      width="125"
-      height="125"
-    />
+  <header>
+    <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" />
 
     <div class="wrapper">
       <HelloWorld msg="You did it!" />
@@ -21,7 +15,7 @@ import HelloWorld from "./components/HelloWorld.vue";
         <RouterLink to="/about">About</RouterLink>
       </nav>
     </div>
-  </header> display: none -->
+  </header>
 
   <RouterView />
 </template>
@@ -89,8 +83,3 @@ nav a:first-of-type {
   }
 }
 </style>
-<!-- <style>
-.design-box {
-  outline: 1px dashed rgb(187, 187, 187);
-}
-</style> -->

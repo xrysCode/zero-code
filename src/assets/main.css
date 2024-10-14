@@ -1,89 +1,18 @@
-@import "./base.css";
+@import './base.css';
 
-body,
-html,
 #app {
-  height: 100%;
-  width: 100%;
-}
-
-.design-component-box,
-.design-slot-box,
-.design-router-box {
-  /* outline: 1px dashed rgb(187, 187, 187); */
-  outline-offset: -1px;
-  /* position: relative; */
-  min-height: 1.5rem;
-}
-.design-component-box {
-  outline: 1.5px dashed rgb(155, 152, 152);
-  position: relative;
-  /* min-height: 1.5em; */
-}
-.design-slot-box {
-  outline: 1.5px dashed rgb(100, 204, 143);
-  /* min-height: 1.5em;
-  height: 100%; */
-}
-.design-router-box {
-  outline: 1.5px solid rgb(223, 25, 25);
-  /* min-height: 1.5em; */
-  /* height: 100%; */
-}
-
-div.design-active-box {
-  outline: 3px solid var(--el-color-primary);
-  outline-offset: -1px;
-  z-index: 10;
-}
-
-.design-operate-right {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  height: 28px;
-  line-height: 28px;
-  background: var(--el-color-primary);
-  z-index: 10;
-}
-.design-operate-left {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 28px;
-  line-height: 28px;
-  background: var(--el-color-primary);
-  z-index: 10;
-}
-
-/* --el-color-primary: #409eff; */
-.design-drop-inner {
-  background-color: var(--el-color-primary);
-  color: #fff;
-}
-.design-drop-indicator {
-  position: absolute;
-  left: 0;
-  right: 0;
-  /* height: 4px; */
-  border: 2px solid var(--el-color-primary);
-  /* background-color: var(--el-color-primary); */
-  /* display: none; */
-}
-
-/* #app {
   max-width: 1280px;
   margin: 0 auto;
   padding: 2rem;
-
   font-weight: normal;
-} */
+}
 
 a,
 .green {
   text-decoration: none;
   color: hsla(160, 100%, 37%, 1);
   transition: 0.4s;
+  padding: 3px;
 }
 
 @media (hover: hover) {
@@ -92,7 +21,7 @@ a,
   }
 }
 
-/* @media (min-width: 1024px) {
+@media (min-width: 1024px) {
   body {
     display: flex;
     place-items: center;
@@ -103,4 +32,4 @@ a,
     grid-template-columns: 1fr 1fr;
     padding: 0 2rem;
   }
-} */
+}
