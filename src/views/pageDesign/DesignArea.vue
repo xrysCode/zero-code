@@ -1,12 +1,10 @@
 <template>
-  <div
-    style="height: 100dvh; width: 100%"
-    @dragover="dragoverHandler($event)"
+  <div style="height: 100dvh; width: 100%">
+    <RenderWrapper :data-render-desc="cardButtonDefault"></RenderWrapper>
+    <!-- <ul>
+     @dragover="dragoverHandler($event)"
     @drop="dropHandler($event)"
     @dragleave="dragleaveHandler($event)"
-  >
-    <RenderWrapper></RenderWrapper>
-    <!-- <ul>
       <li v-for="n in 100">
         {{ n }}
       </li>
@@ -22,10 +20,13 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, useTemplateRef } from 'vue'
+import { ref, useTemplateRef, provide } from 'vue'
 import RenderWrapper from './RenderWrapper.vue'
-
+import { cardButtonDefault } from './comDesc'
+// debugger
 const pointerRef = useTemplateRef('pointerRef')
+provide('pointerRef', pointerRef)
+
 function dragstartHandler(ev: DragEvent, componentType: string) {
   ev.dataTransfer!.setData('text/plain', componentType)
   ev.dataTransfer!.dropEffect = 'move'

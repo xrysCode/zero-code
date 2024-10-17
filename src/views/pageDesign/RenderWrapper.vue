@@ -1,5 +1,16 @@
-<script lang="tsx">
-import { defineComponent, h } from 'vue'
+<template>
+  <div
+    style="height: 100dvh; width: 100%"
+    @dragover="dragoverHandler($event)"
+    @drop="dropHandler($event)"
+    @dragleave="dragleaveHandler($event)"
+  >
+    <Render :data-render-desc="dataRenderDesc"></Render>
+  </div>
+</template>
+
+<script lang="ts" setup>
+import { defineComponent, h, inject } from 'vue'
 import Render from './Render.vue'
 import * as baseConfigData from './comDesc'
 import type { DataRenderDesc } from './comDesc'
@@ -7,6 +18,9 @@ import type { DataRenderDesc } from './comDesc'
 // import MenuWrapper from '@/design/comWrapper/MenuWrapper.vue'
 // import LayoutEditer from "./comWrapper/LayoutEditer.vue";
 
+const { dataRenderDesc } = defineProps<{ dataRenderDesc: DataRenderDesc }>()
+const pointerRef = inject('pointerRef')
+console.log(pointerRef)
 function dragstartHandler(ev: DragEvent, dataRenderDesc: DataRenderDesc) {
   console.log('开始', ev, dataRenderDesc)
   // ev.dataTransfer!.setData('text/plain', componentType)
@@ -64,28 +78,5 @@ function dragendHandler(ev: DragEvent, dataRenderDesc: DataRenderDesc) {
 //         this.designUrl,
 //       )
 //     },
-
-export default defineComponent(
-  // 目前仍然需要手动声明运行时的 props
-  (props: { dataRender: DataRenderDesc; }) => {
-    // 就像在 <script setup> 中一样使用组合式 API
-    // const count = ref(0)
-
-    return () => {
-      // 渲染函数或 JSX
-      return (
-        <div
-          style="height: 100dvh; width: 100%"
-           onDragover={dragoverHandler($event)}
-          onDrop={dropHandler($event)}
-          onDragleave={dragleaveHandler($event)}
-        ><Render dataRender={dataRender}></Render></div>
-      )
-  },
-}
-  {
-    props: [ "dataRender"],
-  }
-)
 </script>
 <style scoped lang="scss"></style>
