@@ -81,14 +81,14 @@
 <script lang="ts" setup>
 import { Delete, Edit, Search, Share, Upload } from '@element-plus/icons-vue'
 import { buttonDefault } from './comDesc'
-import type { DataRenderDesc } from './comDesc'
+import type { RenderDataTree } from './comDesc'
 import type { Component } from 'vue'
 
 interface ComponentInfo {
   icon: object //Component
   type: string
   text: string
-  dataRender: DataRenderDesc
+  dataRender: RenderDataTree
 }
 // debugger
 const componentBase: [ComponentInfo] = [

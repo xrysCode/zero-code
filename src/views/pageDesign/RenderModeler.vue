@@ -1,11 +1,10 @@
 <template>
   <div
-    style="height: 100dvh; width: 100%"
     @dragover="dragoverHandler($event)"
     @drop="dropHandler($event)"
     @dragleave="dragleaveHandler($event)"
   >
-    <Render :data-render-desc="dataRenderDesc"></Render>
+    <Render :renderDataTree="renderDataTree"></Render>
   </div>
 </template>
 
@@ -13,22 +12,22 @@
 import { defineComponent, h, inject } from 'vue'
 import Render from './Render.vue'
 import * as baseConfigData from './comDesc'
-import type { DataRenderDesc } from './comDesc'
+import type { RenderDataTree } from './comDesc'
 // import { MsgDto, MsgType, PositionMsgDto } from '@/design/PostMeaagae'
 // import MenuWrapper from '@/design/comWrapper/MenuWrapper.vue'
 // import LayoutEditer from "./comWrapper/LayoutEditer.vue";
 
-const { dataRenderDesc } = defineProps<{ dataRenderDesc: DataRenderDesc }>()
+const { renderDataTree } = defineProps<{ renderDataTree: RenderDataTree }>()
 const pointerRef = inject('pointerRef')
 console.log(pointerRef)
-function dragstartHandler(ev: DragEvent, dataRenderDesc: DataRenderDesc) {
-  console.log('开始', ev, dataRenderDesc)
+function dragstartHandler(ev: DragEvent, renderDataTree: RenderDataTree) {
+  console.log('开始', ev, renderDataTree)
   // ev.dataTransfer!.setData('text/plain', componentType)
   // ev.dataTransfer.dropEffect = 'move'
   // this.$el.querySelector('#designPanel').style.zIndex = 1
   // this.$el.querySelector('#designPanelIframe').style.zIndex = -1
 }
-function dragendHandler(ev: DragEvent, dataRenderDesc: DataRenderDesc) {
+function dragendHandler(ev: DragEvent, renderDataTree: RenderDataTree) {
   console.log('拖拽结束', ev)
   // this.$el.querySelector('#designPanel').style.zIndex = -1
   // this.$el.querySelector('#designPanelIframe').style.zIndex = 1

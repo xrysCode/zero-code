@@ -1,27 +1,26 @@
 <script lang="tsx">
 import { defineComponent, h, resolveComponent } from 'vue'
-import RenderWrapper from './RenderWrapper.vue'
+import RenderWrapper from './RenderModeler.vue'
 import type { VNode, Component } from 'vue'
-
+import { useRenderProxy } from './comDesc'
 // import { useRenderStore } from "@/stores/render";
-import type { DataRenderDesc } from './comDesc'
+import type { RenderDataTree } from './comDesc'
+import { inject } from 'vue'
 // import { Layout, RangeEnum } from '@/design/comDesc'
 // import { MsgDto, MsgType } from './PostMeaagae'
 
 export default defineComponent(
-  (props: { dataRenderDesc: DataRenderDesc; renderHandler: Component }) => {
+  (props: { renderDataTree: RenderDataTree }) => {
     // 就像在 <script setup> 中一样使用组合式 API
     // const store = useRenderStore();
+    // inject()
 
-    const dataRenderDesc = props.dataRenderDesc
-
-    function singleRender(dataItem: DataRenderDesc): VNode | DataRenderDesc {
-      if (dataItem == null || !dataItem.flag) {
-        return dataItem
+    function singleRender(childrenItem): VNode | RenderDataTree {
+      if (childrenItem == null) {
+        return childrenItem
       }
-      debugger
       // return h(RenderWrapper, dataItem.props, dataItem.children)
-      return h(RenderWrapper, { dataRenderDesc: dataItem.children })
+      return h(RenderWrapper, { renderDataTree: renderDataTree })
     }
 
     function depthFun(children): VNode | VNode[] {
@@ -29,25 +28,22 @@ export default defineComponent(
         return children.map(item => {
           return singleRender(item)
         })
-      } else if (children instanceof Object) {
-        // for()
-        return singleRender(children)
       }
       return singleRender(children)
     }
-
+    const renderDataTree = props.renderDataTree
     return () => {
       // 渲染函数或 JSX
       return h(
-        resolveComponent(dataRenderDesc.type),
-        dataRenderDesc.props,
-        depthFun(dataRenderDesc.children),
+        resolveComponent(renderDataTree.type),
+        renderDataTree.props,
+        depthFun(renderDataTree.children),
       )
     }
   },
   // 目前仍然需要手动声明运行时的 props
   {
-    props: ['dataRenderDesc', 'renderHandler'],
+    props: ['renderDataTree'],
   },
 )
 </script>

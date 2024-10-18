@@ -1,7 +1,8 @@
+/** 提供设计区的门户，这里提供一个遮罩效果，用来指示上下左右中 */
 <template>
   <div style="height: 100dvh; width: 100%">
-    <RenderWrapper :data-render-desc="cardButtonDefault"></RenderWrapper>
-    <!-- <ul>
+    <RenderWrapper :render-data-tree="cardButtonDefault"></RenderWrapper>
+    <!-- <ul> 
      @dragover="dragoverHandler($event)"
     @drop="dropHandler($event)"
     @dragleave="dragleaveHandler($event)"
@@ -21,12 +22,12 @@
 
 <script lang="ts" setup>
 import { ref, useTemplateRef, provide } from 'vue'
-import RenderWrapper from './RenderWrapper.vue'
+import RenderWrapper from './RenderModeler.vue'
 import { cardButtonDefault } from './comDesc'
 // debugger
 const pointerRef = useTemplateRef('pointerRef')
 provide('pointerRef', pointerRef)
-
+// console.log('xx', cardButtonDefault)
 function dragstartHandler(ev: DragEvent, componentType: string) {
   ev.dataTransfer!.setData('text/plain', componentType)
   ev.dataTransfer!.dropEffect = 'move'

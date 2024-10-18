@@ -35,7 +35,7 @@
 import LeftOptions from './LeftOptions.vue'
 import RightOptions from './RightOptions.vue'
 import TopOptions from './TopOptions.vue'
-import DesignArea from './DesignArea.vue'
+import DesignArea from './DesignAreaPortal.vue'
 import { defineComponent } from 'vue'
 import * as baseConfigData from './comDesc'
 // import { MsgDto, MsgType, PositionMsgDto } from '@/design/PostMeaagae'

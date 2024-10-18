@@ -25,7 +25,7 @@ const router = createRouter({
         {
           path: 'designArea',
           name: 'designArea',
-          component: () => import('../views/pageDesign/DesignArea.vue'),
+          component: () => import('../views/pageDesign/DesignAreaPortal.vue'),
         },
       ],
     },
