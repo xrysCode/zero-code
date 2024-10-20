@@ -1,136 +1,99 @@
-import type {
-  /*Slot, Slots,*/ VNode,
-  DefineComponent,
-  DefineSetupFnComponent,
-} from 'vue'
-import { h, resolveComponent } from 'vue'
-// import RenderWrapper from './RenderWrapper.vue'
-// import
+import type { /*Slot, Slots,*/ VNode, DefineComponent } from 'vue'
+import { useToRenderDataTree, useObj2StrJson } from './render-design-utils'
+import RenderModeler from './RenderModeler.vue'
 
 type Children = string | number | boolean | VNode | null | Children[]
 type Slot = () => Children
 type Slots = { [name: string]: Slot }
+
+export enum ComponentType {
+  button = 'button',
+  card = 'card',
+  table = 'table',
+}
+// type any
+export interface MethodDesc {
+  args?: string[] //函数参数
+  methodBody: string | (... T)=> T
+  closureArgs?: object //闭包参数
+}
+
 //组合组件和插槽都用div包裹。以便产生线框
 export interface RenderDataTree {
-  type: string
+  type?: ComponentType //类型用来打开什么类型的编辑器
+  tagName: string
   props?: object | null
-  children?: Children | Slot | Slots
-  interceptFlag: boolean
+  children?:  { [key: string]: MethodDesc }//Children | Slot | Slots
+  interceptFlag?: boolean
+
   // attrs: { [key: string]: object }
   // list: Array<ComDesc>
   // name?: string //名称
   // rangeFlag: RangeEnum //范围标识
   // methods?: { [key: string]: string }
 }
-// DefineSetupFnComponent
 
-class RenderProxyHandler implements ProxyHandler {
-  //<() => RenderDataTree>
-  renderComponentType: DefineSetupFnComponent | DefineComponent
-
-  constructor(renderComponentType: DefineSetupFnComponent | DefineComponent) {
-    this.renderComponentType = renderComponentType
-  }
-  apply(target) {
-    //, thisArg: any, argArray: any[]
-    const renderDataTree = target()
-    if (renderDataTree.interceptFlag == true) {
-      return h(renderComponentType, { renderDataTree: renderDataTree })
-    }
-    return renderDataTree
-  }
-  has(target, prop: string) {
-    //标记是否渲染代理对象 用于json转换
-    if ('isProxy' == prop) {
-      return true
-    }
-    return Reflect.has(target, prop)
-  }
-}
-// const handler: ProxyHandler<() => RenderDataTree> = {
-
+// const defaultSetupData = (
+//   renderDataTree: RenderDataTree,
+//   // modelerOrViewerType: DefineComponent,
+// ): RenderDataTree => {
+//   return useJson2RenderDataTree(useObj2StrJson(renderDataTree), RenderModeler)
 // }
-/**
- * 转换函数调用，以便渲染
- * @param target 插槽
- * @returns
- */
-export const useRenderProxy = (
-  target: () => RenderDataTree,
-  renderComponentType: DefineSetupFnComponent | DefineComponent,
-) => {
-  return new Proxy(target, new RenderProxyHandler(renderComponentType))
-}
-
-const convertData2StrHandler = (key: string, value: any) => {
-  if (value instanceof Function) {
-    // return value()
-    return value.toString()
-  }
-  return value
-}
-/**
- * 转换渲染数据对象为字符串
- * @param dataRenderDesc 渲染数据对象
- * @returns
- */
-export const useJSONstringify = (dataRenderDesc: RenderDataTree) => {
-  return JSON.stringify(dataRenderDesc, convertData2StrHandler)
-}
-
-const convertStr2ObjHandler = (key: string, value: any) => {
-  if (typeof value == 'string' && value.startsWith('()')) {
-    return useRenderProxy(eval(value))
-  }
-  return value
-}
-/**
- * 转换字符串为渲染树
- * @param dataRenderStr 渲染字符串
- * @returns
- */
-export const useParseData = (dataRenderStr: string): RenderDataTree => {
-  return JSON.parse(dataRenderStr, convertStr2ObjHandler)
-}
-
-const defaultSetupData = (renderDataTree: RenderDataTree): RenderDataTree => {
-  return useParseData(useJSONstringify(renderDataTree))
-}
-export const buttonDefault: RenderDataTree = defaultSetupData({
-  type: 'el-button',
-  children: () => '按钮',
+export const buttonDefault: string = useObj2StrJson({
+  type: ComponentType.button,
+  tagName: 'el-button',
+  children: {default:{ methodBody: () => '按钮' }},
   interceptFlag: true,
 })
 
-export const cardDefault: RenderDataTree = defaultSetupData({
-  type: 'el-card',
+export const cardDefault: string = useObj2StrJson({
+  type: ComponentType.card,
+  tagName: 'el-card',
+  props: { style: { maxWidth: '480px' } },
   children: {
-    default: () => '内容区',
-    header: () => '头区',
-    footer: () => '尾区',
-    // style:{maxWidth: "480px"}
+    default: {methodBody:() => '内容区'},
+    header: {methodBody:() => '头区'},
+    footer: {methodBody:() => '尾区'},
   },
   interceptFlag: true,
 })
 
-export const cardButtonDefault: RenderDataTree = defaultSetupData({
-  type: 'el-card',
+const test=useToRenderDataTree(cardDefault, RenderModeler)
+
+//todo 写一个转换器用来组合数据
+export const cardButtonDefault: string = useObj2StrJson({
+  type: ComponentType.card,
+  tagName: 'el-card',
   props: { style: { 'max-Width': '480px' }, class: ['xxx'] },
   children: {
-    default: () => buttonDefault,
-    header: () => '头区',
-    footer: () => '尾区',
+    // default: {methodBody:() => useToRenderDataTree(buttonDefault, RenderModeler)},
+    default: {methodBody:() => buttonDefault, },// 封装这种函数的写法 转换为下面这种  这种结构导致方法执行失败，需要找一直直接得到对象的方式
+    // default: () => {
+    //   return {
+    //     type: 'el-button',
+    //     children: () => '按钮',
+    //     interceptFlag: true,
+    //   }
+    // },
+    header: {methodBody:() => '头区'},
+    footer: {methodBody:() => {
+      return {
+        tagName: 'div',
+        children: '尾区',
+      }
+    }},
   },
   interceptFlag: true,
 })
 
+console.log('a', cardButtonDefault)
 // 回溯组件？
-export enum RangeEnum {
-  START = 'start', //有框
-  INNER = 'inner',
-  END = 'end',
-  DROP_SLOT = 'drop_slot',
-}
+// export enum RangeEnum {
+//   START = 'start', //有框
+//   INNER = 'inner',
+//   END = 'end',
+//   DROP_SLOT = 'drop_slot',
+// }
 // interface MethodDesc{
 //   [key: string]: string
 // }

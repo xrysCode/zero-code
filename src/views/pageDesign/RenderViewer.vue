@@ -1,20 +1,15 @@
+/** 页面展示器 */
 <script lang="tsx">
 import { defineComponent, h, resolveComponent } from 'vue'
-import RenderWrapper from './RenderModeler.vue'
 import type { VNode, Component } from 'vue'
-import { useRenderProxy } from './comDesc'
+// import { useRenderProxy } from './default-init-data'
 // import { useRenderStore } from "@/stores/render";
-import type { RenderDataTree } from './comDesc'
-import { inject } from 'vue'
+import type { RenderDataTree } from './default-init-data'
 // import { Layout, RangeEnum } from '@/design/comDesc'
 // import { MsgDto, MsgType } from './PostMeaagae'
 
 export default defineComponent(
   (props: { renderDataTree: RenderDataTree }) => {
-    // 就像在 <script setup> 中一样使用组合式 API
-    // const store = useRenderStore();
-    // inject()
-
     function singleRender(childrenItem): VNode | RenderDataTree {
       if (childrenItem == null) {
         return childrenItem
@@ -31,11 +26,12 @@ export default defineComponent(
       }
       return singleRender(children)
     }
+
     const renderDataTree = props.renderDataTree
     return () => {
       // 渲染函数或 JSX
       return h(
-        resolveComponent(renderDataTree.type),
+        resolveComponent(renderDataTree.tagName),
         renderDataTree.props,
         depthFun(renderDataTree.children),
       )

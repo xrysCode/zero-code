@@ -1,15 +1,15 @@
 import type {
   /*Slot, Slots,*/ VNode,
   DefineComponent,
-  DefineSetupFnComponent,
+  resolveComponent,
 } from 'vue'
-import { h, resolveComponent } from 'vue'
-// import RenderWrapper from './RenderWrapper.vue'
-// import
+import { useToRenderDataTree, useObj2StrJson } from './render-design-utils'
+import RenderModeler from './RenderModeler.vue'
 
 type Children = string | number | boolean | VNode | null | Children[]
 type Slot = () => Children
 type Slots = { [name: string]: Slot }
+
 //组合组件和插槽都用div包裹。以便产生线框
 export interface RenderDataTree {
   type: string
@@ -22,79 +22,11 @@ export interface RenderDataTree {
   // rangeFlag: RangeEnum //范围标识
   // methods?: { [key: string]: string }
 }
-// DefineSetupFnComponent
-
-class RenderProxyHandler implements ProxyHandler {
-  //<() => RenderDataTree>
-  renderComponentType: DefineSetupFnComponent | DefineComponent
-
-  constructor(renderComponentType: DefineSetupFnComponent | DefineComponent) {
-    this.renderComponentType = renderComponentType
-  }
-  apply(target) {
-    //, thisArg: any, argArray: any[]
-    const renderDataTree = target()
-    if (renderDataTree.interceptFlag == true) {
-      return h(renderComponentType, { renderDataTree: renderDataTree })
-    }
-    return renderDataTree
-  }
-  has(target, prop: string) {
-    //标记是否渲染代理对象 用于json转换
-    if ('isProxy' == prop) {
-      return true
-    }
-    return Reflect.has(target, prop)
-  }
-}
-// const handler: ProxyHandler<() => RenderDataTree> = {
-
-// }
-/**
- * 转换函数调用，以便渲染
- * @param target 插槽
- * @returns
- */
-export const useRenderProxy = (
-  target: () => RenderDataTree,
-  renderComponentType: DefineSetupFnComponent | DefineComponent,
-) => {
-  return new Proxy(target, new RenderProxyHandler(renderComponentType))
-}
-
-const convertData2StrHandler = (key: string, value: any) => {
-  if (value instanceof Function) {
-    // return value()
-    return value.toString()
-  }
-  return value
-}
-/**
- * 转换渲染数据对象为字符串
- * @param dataRenderDesc 渲染数据对象
- * @returns
- */
-export const useJSONstringify = (dataRenderDesc: RenderDataTree) => {
-  return JSON.stringify(dataRenderDesc, convertData2StrHandler)
-}
-
-const convertStr2ObjHandler = (key: string, value: any) => {
-  if (typeof value == 'string' && value.startsWith('()')) {
-    return useRenderProxy(eval(value))
-  }
-  return value
-}
-/**
- * 转换字符串为渲染树
- * @param dataRenderStr 渲染字符串
- * @returns
- */
-export const useParseData = (dataRenderStr: string): RenderDataTree => {
-  return JSON.parse(dataRenderStr, convertStr2ObjHandler)
-}
-
-const defaultSetupData = (renderDataTree: RenderDataTree): RenderDataTree => {
-  return useParseData(useJSONstringify(renderDataTree))
+const defaultSetupData = (
+  renderDataTree: RenderDataTree,
+  // modelerOrViewerType: DefineComponent,
+): RenderDataTree => {
+  return useToRenderDataTree(useObj2StrJson(renderDataTree), RenderModeler)
 }
 export const buttonDefault: RenderDataTree = defaultSetupData({
   type: 'el-button',
@@ -102,13 +34,18 @@ export const buttonDefault: RenderDataTree = defaultSetupData({
   interceptFlag: true,
 })
 
+export const buttonDefault2 = h('el-button', null, { default: () => '按钮' })
+export const buttonDefault2 = h(resolveComponent('el-button'), null, {
+  default: () => '按钮',
+})
+
 export const cardDefault: RenderDataTree = defaultSetupData({
   type: 'el-card',
+  props: { style: { maxWidth: '480px' } },
   children: {
     default: () => '内容区',
     header: () => '头区',
     footer: () => '尾区',
-    // style:{maxWidth: "480px"}
   },
   interceptFlag: true,
 })
@@ -117,20 +54,28 @@ export const cardButtonDefault: RenderDataTree = defaultSetupData({
   type: 'el-card',
   props: { style: { 'max-Width': '480px' }, class: ['xxx'] },
   children: {
-    default: () => buttonDefault,
+    // default: () => buttonDefault,
+    default: () => {
+      return {
+        type: 'el-button',
+        children: () => '按钮',
+        interceptFlag: true,
+      }
+    },
     header: () => '头区',
     footer: () => '尾区',
   },
   interceptFlag: true,
 })
-
+debugger
+console.log('a', cardButtonDefault)
 // 回溯组件？
-export enum RangeEnum {
-  START = 'start', //有框
-  INNER = 'inner',
-  END = 'end',
-  DROP_SLOT = 'drop_slot',
-}
+// export enum RangeEnum {
+//   START = 'start', //有框
+//   INNER = 'inner',
+//   END = 'end',
+//   DROP_SLOT = 'drop_slot',
+// }
 // interface MethodDesc{
 //   [key: string]: string
 // }

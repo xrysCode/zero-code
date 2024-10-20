@@ -37,7 +37,7 @@ import RightOptions from './RightOptions.vue'
 import TopOptions from './TopOptions.vue'
 import DesignArea from './DesignAreaPortal.vue'
 import { defineComponent } from 'vue'
-import * as baseConfigData from './comDesc'
+import * as baseConfigData from './default-init-data'
 // import { MsgDto, MsgType, PositionMsgDto } from '@/design/PostMeaagae'
 // import MenuWrapper from '@/design/comWrapper/MenuWrapper.vue'
 // import LayoutEditer from "./comWrapper/LayoutEditer.vue";

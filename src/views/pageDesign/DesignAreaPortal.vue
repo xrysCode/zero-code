@@ -1,32 +1,31 @@
 /** 提供设计区的门户，这里提供一个遮罩效果，用来指示上下左右中 */
 <template>
-  <div style="height: 100dvh; width: 100%">
-    <RenderWrapper :render-data-tree="cardButtonDefault"></RenderWrapper>
-    <!-- <ul> 
-     @dragover="dragoverHandler($event)"
-    @drop="dropHandler($event)"
-    @dragleave="dragleaveHandler($event)"
-      <li v-for="n in 100">
-        {{ n }}
-      </li>
-    </ul> -->
+  <div style="height: 100dvh; width: 100%" @dragover="dragoverHandler">
+    <RenderWrapper
+      v-if="renderDataTree"
+      :render-data-tree="renderDataTree"
+    ></RenderWrapper>
+    <el-empty
+      v-else
+      description="请从左侧列表中选择一个组件, 然后用鼠标拖动组件放置于此处。"
+    />
   </div>
-  <!-- <div position: relative;>请从左侧列表中选择一个组件, 然后用鼠标拖动组件放置于此处。</div> -->
-  <div
-    ref="pointerRef"
-    id="drop-indicator"
-    class="el-tree__drop-indicator"
-    style="top: 120px; left: 42px; height: 6px; z-index: 1"
-  ></div>
 </template>
 
 <script lang="ts" setup>
 import { ref, useTemplateRef, provide } from 'vue'
 import RenderWrapper from './RenderModeler.vue'
-import { cardButtonDefault } from './comDesc'
+// import RenderWrapper from './RenderModeler2'
+import * as defaultData from './default-init-data'
+import type { RenderDataTree } from './default-init-data'
+import { useToRenderDataTree } from './render-design-utils'
+
+const renderDataTree = ref<RenderDataTree>(
+  useToRenderDataTree(defaultData.cardButtonDefault),
+)
 // debugger
-const pointerRef = useTemplateRef('pointerRef')
-provide('pointerRef', pointerRef)
+// const pointerRef = useTemplateRef('pointerRef')
+// provide('pointerRef', pointerRef)
 // console.log('xx', cardButtonDefault)
 function dragstartHandler(ev: DragEvent, componentType: string) {
   ev.dataTransfer!.setData('text/plain', componentType)

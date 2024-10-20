@@ -1,25 +1,22 @@
-<template>
-  <div
-    @dragover="dragoverHandler($event)"
-    @drop="dropHandler($event)"
-    @dragleave="dragleaveHandler($event)"
-  >
-    <Render :renderDataTree="renderDataTree"></Render>
-  </div>
-</template>
+<script lang="ts">
+/** 建模设计器 组合组件和插槽都用div包裹。以便产生线框*/
+import { defineComponent, h, inject, resolveComponent, ref } from 'vue'
+// import * as baseConfigData from './default-init-data'
+import type { RenderDataTree } from './default-init-data'
+import { ElIcon } from 'element-plus'
+import {
+  Delete,
+  Edit,
+  Rank,
+  CaretTop,
+  CaretBottom,
+} from '@element-plus/icons-vue'
 
-<script lang="ts" setup>
-import { defineComponent, h, inject } from 'vue'
-import Render from './Render.vue'
-import * as baseConfigData from './comDesc'
-import type { RenderDataTree } from './comDesc'
 // import { MsgDto, MsgType, PositionMsgDto } from '@/design/PostMeaagae'
 // import MenuWrapper from '@/design/comWrapper/MenuWrapper.vue'
 // import LayoutEditer from "./comWrapper/LayoutEditer.vue";
-
-const { renderDataTree } = defineProps<{ renderDataTree: RenderDataTree }>()
-const pointerRef = inject('pointerRef')
-console.log(pointerRef)
+// import {<el-icon><Delete /></el-icon>}
+// const { renderDataTree } = defineProps<{ renderDataTree: RenderDataTree }>()
 function dragstartHandler(ev: DragEvent, renderDataTree: RenderDataTree) {
   console.log('开始', ev, renderDataTree)
   // ev.dataTransfer!.setData('text/plain', componentType)
@@ -27,6 +24,65 @@ function dragstartHandler(ev: DragEvent, renderDataTree: RenderDataTree) {
   // this.$el.querySelector('#designPanel').style.zIndex = 1
   // this.$el.querySelector('#designPanelIframe').style.zIndex = -1
 }
+const isActive = ref(false)
+const activeEdit = (event: MouseEvent) => {
+  // if (isActive.value == true) {
+  //   return
+  // }
+  isActive.value = true
+  const element = event.currentTarget as HTMLElement
+  element.classList.add('clickContainer')
+}
+const activeDrag = (event: MouseEvent) => {
+  const element = event.currentTarget! as HTMLElement
+  element.parentElement.parentElement.draggable = true
+}
+export default defineComponent(
+  (props: { renderDataTree: RenderDataTree }) => {
+    // const pointerRef = inject('pointerRef')
+    // console.log(pointerRef)
+
+    const renderDataTree = props.renderDataTree
+    return () => {
+      // 渲染函数或 JSX
+      return [
+        h(
+          'div',
+          {
+            // style: { display: 'inline-block' },
+            class: ['designContainer'],
+            onClick: activeEdit,
+            //       onDragover:dragoverHandler($event)
+            // onDrop:dropHandler($event)
+            // onDragleave:dragleaveHandler($event),
+          },
+          [
+            h(
+              resolveComponent(renderDataTree.tagName),
+              renderDataTree.props,
+              renderDataTree.children,
+            ),
+            [
+              isActive.value
+                ? h(ElIcon, { class: 'editShow' }, [
+                    h(Rank, { onMousedown: activeDrag }),
+                    h(CaretTop),
+                    h(CaretBottom),
+                    h(Delete),
+                  ])
+                : null,
+            ],
+          ],
+        ),
+      ]
+    }
+  },
+  // 目前仍然需要手动声明运行时的 props
+  {
+    props: ['renderDataTree'],
+  },
+)
+
 function dragendHandler(ev: DragEvent, renderDataTree: RenderDataTree) {
   console.log('拖拽结束', ev)
   // this.$el.querySelector('#designPanel').style.zIndex = -1
@@ -78,4 +134,26 @@ function dragendHandler(ev: DragEvent, renderDataTree: RenderDataTree) {
 //       )
 //     },
 </script>
-<style scoped lang="scss"></style>
+<style lang="scss">
+.designContainer {
+  width: auto;
+  position: relative;
+}
+.clickContainer {
+  outline: 2px solid var(--el-color-primary);
+  border-radius: 4px; //var(--el-card-border-radius);
+  resize: both;
+  overflow: auto; //scroll
+}
+.editShow {
+  background-color: var(--el-color-primary);
+  // font-size: 1em;
+  width: 4em; //三个图标宽度
+  top: 0px;
+  left: 0px;
+  position: absolute;
+}
+// .editHide {
+//   display: none;
+// }
+</style>
