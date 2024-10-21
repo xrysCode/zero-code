@@ -17,18 +17,21 @@ export interface MethodDesc {
   methodBody: string | (... T)=> T
   closureArgs?: object //闭包参数
 }
-
+/**
+ * 两种方式
+ * 1、用div包裹设计要数，好处布局方便，缺点，子元素可能需要很小的宽度，但是父元素占了整行,拖动大小识别传递给子困难
+ * 2、直接对元素使用设计要数，好处完全依赖子元素特点，缺点如何布局设计要数位置
+ */
 //组合组件和插槽都用div包裹。以便产生线框
 export interface RenderDataTree {
-  type?: ComponentType //类型用来打开什么类型的编辑器
+  type?: ComponentType //类型用来打开什么类型的编辑器 对于渲染没有用
+  //当前的上下文环境用来初始化函数及各种响应式数据，以便形成闭包,同时使用渲染组件特点来初始化他
+  _context?: { [key: string]: (... T)=> T|string|object }
   tagName: string
   props?: object | null
-  children?:  { [key: string]: MethodDesc }//Children | Slot | Slots
+  children?:  { [key: string]: [RenderDataTree|string] }//插槽渲染数据说明,代理转换为渲染函数
   interceptFlag?: boolean
 
-  // attrs: { [key: string]: object }
-  // list: Array<ComDesc>
-  // name?: string //名称
   // rangeFlag: RangeEnum //范围标识
   // methods?: { [key: string]: string }
 }
@@ -39,54 +42,88 @@ export interface RenderDataTree {
 // ): RenderDataTree => {
 //   return useJson2RenderDataTree(useObj2StrJson(renderDataTree), RenderModeler)
 // }
-export const buttonDefault: string = useObj2StrJson({
-  type: ComponentType.button,
-  tagName: 'el-button',
-  children: {default:{ methodBody: () => '按钮' }},
-  interceptFlag: true,
-})
 
-export const cardDefault: string = useObj2StrJson({
-  type: ComponentType.card,
-  tagName: 'el-card',
-  props: { style: { maxWidth: '480px' } },
-  children: {
-    default: {methodBody:() => '内容区'},
-    header: {methodBody:() => '头区'},
-    footer: {methodBody:() => '尾区'},
-  },
-  interceptFlag: true,
-})
-
-const test=useToRenderDataTree(cardDefault, RenderModeler)
 
 //todo 写一个转换器用来组合数据
-export const cardButtonDefault: string = useObj2StrJson({
+ let testData = {
   type: ComponentType.card,
-  tagName: 'el-card',
-  props: { style: { 'max-Width': '480px' }, class: ['xxx'] },
-  children: {
-    // default: {methodBody:() => useToRenderDataTree(buttonDefault, RenderModeler)},
-    default: {methodBody:() => buttonDefault, },// 封装这种函数的写法 转换为下面这种  这种结构导致方法执行失败，需要找一直直接得到对象的方式
-    // default: () => {
-    //   return {
-    //     type: 'el-button',
-    //     children: () => '按钮',
-    //     interceptFlag: true,
-    //   }
-    // },
-    header: {methodBody:() => '头区'},
-    footer: {methodBody:() => {
-      return {
-        tagName: 'div',
-        children: '尾区',
-      }
-    }},
+  _context: {
+    reactive: {
+      user: '',
+      region: '',
+      date: '',
+    },
+    onSubmit: `() => {
+      console.log('submit!')
+    }`,
   },
+  tagName: 'el-form',
+  props: {
+    ':inline': 'true',
+    ':model': 'formInline',
+    class: 'demo-form-inline',
+  },
+  children: {
+    default: [
+      {
+        tagName: 'el-form-item',
+        props: { label: 'Approved by' },
+        children: {
+          default: [{
+            tagName: 'el-input',
+            props: {
+              'v-model': 'formInline.user',
+              placeholder: 'Approved by',
+              clearable: true,
+            },
+            // children: { default: [] },
+          }],
+        },
+      },
+      {
+        tagName: 'el-form-item',
+        children: {
+          default: [{
+            tagName: 'el-button',
+            props: {
+              type:"primary", onclick:"onSubmit"
+            },
+            children: {default:["Query"]},
+          }],
+        },
+      },
+    ], // 封装这种函数的写法 转换为下面这种  这种结构导致方法执行失败，需要找一直直接得到对象的方式
+  },
+  
   interceptFlag: true,
-})
+}
+export const testDataStr=JSON.stringify(testData)
+console.log('testDataStr', testDataStr)
 
-console.log('a', cardButtonDefault)
+let a=useToRenderDataTree(testDataStr,RenderModeler)
+let b=useObj2StrJson(a)
+console.log('b', b)
+
+// export const cardDefault: string = useObj2StrJson({
+//   type: ComponentType.card,
+//   tagName: 'el-card',
+//   props: { style: { maxWidth: '480px' } },
+//   children: {
+//     default: {methodBody:() => '内容区'},
+//     header: {methodBody:() => '头区'},
+//     footer: {methodBody:() => '尾区'},
+//   },
+//   interceptFlag: true,
+// })
+// export const buttonDefault: string = useObj2StrJson({
+//   type: ComponentType.button,
+//   tagName: 'el-button',
+//   children: {default:['按钮' ]},
+//   interceptFlag: true,
+// })
+// const test=useToRenderDataTree(cardDefault, RenderModeler)
+
+
 // 回溯组件？
 // export enum RangeEnum {
 //   START = 'start', //有框

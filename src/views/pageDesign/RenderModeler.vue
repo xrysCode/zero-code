@@ -43,8 +43,9 @@ export default defineComponent(
     // console.log(pointerRef)
 
     const renderDataTree = props.renderDataTree
+    console.log('上下文', renderDataTree.context)
     return () => {
-      // 渲染函数或 JSX
+      // 渲染函数
       return [
         h(
           'div',

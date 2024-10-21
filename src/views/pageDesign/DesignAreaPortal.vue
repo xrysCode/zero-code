@@ -1,10 +1,10 @@
 /** 提供设计区的门户，这里提供一个遮罩效果，用来指示上下左右中 */
 <template>
   <div style="height: 100dvh; width: 100%" @dragover="dragoverHandler">
-    <RenderWrapper
+    <RenderModeler
       v-if="renderDataTree"
       :render-data-tree="renderDataTree"
-    ></RenderWrapper>
+    ></RenderModeler>
     <el-empty
       v-else
       description="请从左侧列表中选择一个组件, 然后用鼠标拖动组件放置于此处。"
@@ -14,14 +14,14 @@
 
 <script lang="ts" setup>
 import { ref, useTemplateRef, provide } from 'vue'
-import RenderWrapper from './RenderModeler.vue'
+import RenderModeler from './RenderModeler.vue'
 // import RenderWrapper from './RenderModeler2'
 import * as defaultData from './default-init-data'
 import type { RenderDataTree } from './default-init-data'
 import { useToRenderDataTree } from './render-design-utils'
 
 const renderDataTree = ref<RenderDataTree>(
-  useToRenderDataTree(defaultData.cardButtonDefault),
+  useToRenderDataTree(defaultData.testDataStr, RenderModeler),
 )
 // debugger
 // const pointerRef = useTemplateRef('pointerRef')
