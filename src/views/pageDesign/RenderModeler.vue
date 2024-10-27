@@ -1,6 +1,13 @@
 <script lang="ts">
 /** 建模设计器 组合组件和插槽都用div包裹。以便产生线框*/
-import { defineComponent, h, inject, resolveComponent, ref } from 'vue'
+import {
+  defineComponent,
+  h,
+  inject,
+  resolveComponent,
+  ref,
+  reactive,
+} from 'vue'
 // import * as baseConfigData from './default-init-data'
 import type { RenderDataTree } from './default-init-data'
 import { ElIcon } from 'element-plus'
@@ -11,11 +18,10 @@ import {
   CaretTop,
   CaretBottom,
 } from '@element-plus/icons-vue'
+import { before, type forEach } from 'lodash'
+import { restoreFunction } from './render-design-utils'
 
 // import { MsgDto, MsgType, PositionMsgDto } from '@/design/PostMeaagae'
-// import MenuWrapper from '@/design/comWrapper/MenuWrapper.vue'
-// import LayoutEditer from "./comWrapper/LayoutEditer.vue";
-// import {<el-icon><Delete /></el-icon>}
 // const { renderDataTree } = defineProps<{ renderDataTree: RenderDataTree }>()
 function dragstartHandler(ev: DragEvent, renderDataTree: RenderDataTree) {
   console.log('开始', ev, renderDataTree)
@@ -38,12 +44,43 @@ const activeDrag = (event: MouseEvent) => {
   element.parentElement.parentElement.draggable = true
 }
 export default defineComponent(
-  (props: { renderDataTree: RenderDataTree }) => {
+  (props: { renderDataTree: RenderDataTree }, other) => {
     // const pointerRef = inject('pointerRef')
     // console.log(pointerRef)
 
     const renderDataTree = props.renderDataTree
-    console.log('上下文', renderDataTree.context)
+
+    const _context = renderDataTree._context
+    const _argsContext = {}
+    const _funContext = {}
+    for (const key in _context) {
+      switch (key) {
+        case 'reactive':
+          _argsContext.reactiveObject = reactive(_context[key])
+          break
+        case 'ref':
+          for (const index in _context[key]) {
+            const name = _context[key][index]
+            _argsContext[name + 'Ref'] = ref(name)
+          }
+          break
+        default: //余下的都视为函数 事件监听器应以 onXxx 的形式书写
+          _funContext[key] = _context[key]
+      }
+    }
+
+    //解析属性数据，各种绑定及函数等
+    const _props = renderDataTree.props
+    for (const key in _props) {
+      if (key.startsWith('on')) {
+        const funName = _props[key]
+        const fun = restoreFunction(_funContext[funName], _funContext[funName])
+        fun.fun = _funContext[funName]
+        value[key] = new Proxy(fun, {})
+      }
+    }
+
+    console.log('上下文', renderDataTree._context)
     return () => {
       // 渲染函数
       return [
@@ -63,16 +100,15 @@ export default defineComponent(
               renderDataTree.props,
               renderDataTree.children,
             ),
-            [
-              isActive.value
-                ? h(ElIcon, { class: 'editShow' }, [
-                    h(Rank, { onMousedown: activeDrag }),
-                    h(CaretTop),
-                    h(CaretBottom),
-                    h(Delete),
-                  ])
-                : null,
-            ],
+
+            isActive.value
+              ? h(ElIcon, { class: 'editShow' }, [
+                  h(Rank, { onMousedown: activeDrag }),
+                  h(CaretTop),
+                  h(CaretBottom),
+                  h(Delete),
+                ])
+              : null,
           ],
         ),
       ]
@@ -81,6 +117,7 @@ export default defineComponent(
   // 目前仍然需要手动声明运行时的 props
   {
     props: ['renderDataTree'],
+    // emits: ['t1'],
   },
 )
 

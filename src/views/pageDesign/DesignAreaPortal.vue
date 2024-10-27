@@ -5,6 +5,10 @@
       v-if="renderDataTree"
       :render-data-tree="renderDataTree"
     ></RenderModeler>
+    <!-- <RenderModeler
+      v-if="renderDataTree"
+      :render-data-tree="renderDataTree"
+    ></RenderModeler> -->
     <el-empty
       v-else
       description="请从左侧列表中选择一个组件, 然后用鼠标拖动组件放置于此处。"
@@ -20,24 +24,29 @@ import * as defaultData from './default-init-data'
 import type { RenderDataTree } from './default-init-data'
 import { useToRenderDataTree } from './render-design-utils'
 
-const renderDataTree = ref<RenderDataTree>(
-  useToRenderDataTree(defaultData.testDataStr, RenderModeler),
-)
+const data = defaultData.testDataStr
+const renderDataTree = useToRenderDataTree(data, RenderModeler)
+// const renderDataTree = JSON.parse(data)
+// const renderDataTree = ref<RenderDataTree>(
+//   useToRenderDataTree(data, RenderModeler),
+// )
+
+console.log('渲染数', data)
 // debugger
 // const pointerRef = useTemplateRef('pointerRef')
 // provide('pointerRef', pointerRef)
 // console.log('xx', cardButtonDefault)
-function dragstartHandler(ev: DragEvent, componentType: string) {
-  ev.dataTransfer!.setData('text/plain', componentType)
-  ev.dataTransfer!.dropEffect = 'move'
-  //   this.$el.querySelector('#designPanel').style.zIndex = 1
-  //   this.$el.querySelector('#designPanelIframe').style.zIndex = -1
-}
-function dragendHandler(ev: DragEvent, componentType: string) {
-  console.log('拖拽结束', ev)
-  this.$el.querySelector('#designPanel').style.zIndex = -1
-  this.$el.querySelector('#designPanelIframe').style.zIndex = 1
-}
+// function dragstartHandler(ev: DragEvent, componentType: string) {
+//   ev.dataTransfer!.setData('text/plain', componentType)
+//   ev.dataTransfer!.dropEffect = 'move'
+//   //   this.$el.querySelector('#designPanel').style.zIndex = 1
+//   //   this.$el.querySelector('#designPanelIframe').style.zIndex = -1
+// }
+// function dragendHandler(ev: DragEvent, componentType: string) {
+//   console.log('拖拽结束', ev)
+//   this.$el.querySelector('#designPanel').style.zIndex = -1
+//   this.$el.querySelector('#designPanelIframe').style.zIndex = 1
+// }
 //     /////////////////////////////////////////////
 function dragoverHandler(ev: DragEvent) {
   ev.preventDefault() // 阻止默认行为以允许放置

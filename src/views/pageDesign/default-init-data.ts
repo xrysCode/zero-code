@@ -26,26 +26,25 @@ export interface MethodDesc {
 export interface RenderDataTree {
   type?: ComponentType //类型用来打开什么类型的编辑器 对于渲染没有用
   //当前的上下文环境用来初始化函数及各种响应式数据，以便形成闭包,同时使用渲染组件特点来初始化他
-  _context?: { [key: string]: (... T)=> T|string|object }
+  _context?: { 
+    reactive?:object,//在使用的时候引用名为 reactiveObject
+    ref?:string[],//在使用的时候引用名为 xxxRef
+    [key: string]: string|object |undefined //这个为string类型的箭头函数 全部是@开头，后面编译后变成on开头
+  }
   tagName: string
-  props?: object | null
+  // 事件监听器应以 onXxx 的形式书写
+  props?: object | null//这里有函数需要初始化  onchange='函数的引用'
   children?:  { [key: string]: [RenderDataTree|string] }//插槽渲染数据说明,代理转换为渲染函数
   interceptFlag?: boolean
+  parent?:RenderDataTree
 
   // rangeFlag: RangeEnum //范围标识
   // methods?: { [key: string]: string }
 }
 
-// const defaultSetupData = (
-//   renderDataTree: RenderDataTree,
-//   // modelerOrViewerType: DefineComponent,
-// ): RenderDataTree => {
-//   return useJson2RenderDataTree(useObj2StrJson(renderDataTree), RenderModeler)
-// }
-
 
 //todo 写一个转换器用来组合数据
- let testData = {
+ let testData:RenderDataTree = {
   type: ComponentType.card,
   _context: {
     reactive: {
@@ -53,14 +52,14 @@ export interface RenderDataTree {
       region: '',
       date: '',
     },
-    onSubmit: `() => {
-      console.log('submit!')
+    "Submit": `($event) => {
+      console.log('submit!',$event,reactiveObject)
     }`,
   },
   tagName: 'el-form',
   props: {
     ':inline': 'true',
-    ':model': 'formInline',
+    ':model': 'reactiveObject',
     class: 'demo-form-inline',
   },
   children: {
@@ -76,21 +75,26 @@ export interface RenderDataTree {
               placeholder: 'Approved by',
               clearable: true,
             },
+            interceptFlag:true,
             // children: { default: [] },
           }],
         },
+        interceptFlag:true,
       },
       {
         tagName: 'el-form-item',
         children: {
           default: [{
             tagName: 'el-button',
-            props: {
-              type:"primary", onclick:"onSubmit"
+            props: {// 事件监听器应以 onXxx 的形式书写
+              type:"primary", onClick:"Submit('xx')"
             },
             children: {default:["Query"]},
-          }],
+            interceptFlag:true,
+          }
+        ],
         },
+        interceptFlag:true,
       },
     ], // 封装这种函数的写法 转换为下面这种  这种结构导致方法执行失败，需要找一直直接得到对象的方式
   },
@@ -99,10 +103,10 @@ export interface RenderDataTree {
 }
 export const testDataStr=JSON.stringify(testData)
 console.log('testDataStr', testDataStr)
-
-let a=useToRenderDataTree(testDataStr,RenderModeler)
-let b=useObj2StrJson(a)
-console.log('b', b)
+// debugger
+// let a=useToRenderDataTree(testDataStr,RenderModeler)
+// let b=useObj2StrJson(a)
+// console.log('b', b)
 
 // export const cardDefault: string = useObj2StrJson({
 //   type: ComponentType.card,
