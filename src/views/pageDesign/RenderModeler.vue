@@ -20,6 +20,7 @@ import {
 } from '@element-plus/icons-vue'
 import { before, type forEach } from 'lodash'
 import { restoreFunction } from './render-design-utils'
+import RenderModeler from './RenderModeler.vue'
 
 // import { MsgDto, MsgType, PositionMsgDto } from '@/design/PostMeaagae'
 // const { renderDataTree } = defineProps<{ renderDataTree: RenderDataTree }>()
@@ -43,44 +44,82 @@ const activeDrag = (event: MouseEvent) => {
   const element = event.currentTarget! as HTMLElement
   element.parentElement.parentElement.draggable = true
 }
+//嵌套的上下文如何处理 这里变成多个上下文
+let _context
+let _argsContext = {}
+let _funContext = {}
+// let parent = null
+const resolveRenderData = (renderDataTree: RenderDataTree) => {
+  if (renderDataTree._context != null) {
+    //重置
+    _context = renderDataTree._context
+    _argsContext = {}
+    _funContext = {}
+  }
+
+  for (const key in _context) {
+    switch (key) {
+      case 'reactive':
+        _argsContext.reactiveObject = reactive(_context[key])
+        break
+      case 'ref':
+        for (const index in _context[key]) {
+          const name = _context[key][index]
+          _argsContext[name + 'Ref'] = ref(name)
+        }
+        break
+      default: //余下的都视为函数 事件监听器应以 onXxx 的形式书写
+        _funContext[key] = _context[key]
+    }
+  }
+
+  //解析属性数据，各种绑定及函数等
+  const _props = renderDataTree.props
+  for (const key in _props) {
+    if (key.startsWith('on')) {
+      const funName = _props[key]
+      const fun = restoreFunction(_funContext[funName], _argsContext)
+      fun.fun = _funContext[funName]
+      _props[key] = new Proxy(fun, {})
+    }
+  }
+
+  const _children = renderDataTree.children
+  for (const key in _children) {
+    const slotInfoArr = _children[key] as [RenderDataTree | string]
+    const fun = () => {
+      const slotInfoProxyArr = []
+      //组装虚拟节点
+      for (const slotInfo of slotInfoArr) {
+        let vnode = slotInfo
+        if (typeof slotInfo == 'object') {
+          slotInfo.parent = renderDataTree
+          if (slotInfo.interceptFlag == true) {
+            vnode = h(RenderModeler, { renderDataTree: slotInfo })
+          } else {
+            vnode = h(
+              resolveComponent(slotInfo.tagName),
+              slotInfo.props,
+              slotInfo.children,
+            )
+          }
+        }
+        slotInfoProxyArr.push(vnode)
+      }
+      return slotInfoProxyArr //返回结果
+    }
+    fun.data = slotInfoArr
+    _children[key] = new Proxy(fun, {})
+  }
+}
+
 export default defineComponent(
   (props: { renderDataTree: RenderDataTree }, other) => {
     // const pointerRef = inject('pointerRef')
     // console.log(pointerRef)
-
     const renderDataTree = props.renderDataTree
+    resolveRenderData(renderDataTree)
 
-    const _context = renderDataTree._context
-    const _argsContext = {}
-    const _funContext = {}
-    for (const key in _context) {
-      switch (key) {
-        case 'reactive':
-          _argsContext.reactiveObject = reactive(_context[key])
-          break
-        case 'ref':
-          for (const index in _context[key]) {
-            const name = _context[key][index]
-            _argsContext[name + 'Ref'] = ref(name)
-          }
-          break
-        default: //余下的都视为函数 事件监听器应以 onXxx 的形式书写
-          _funContext[key] = _context[key]
-      }
-    }
-
-    //解析属性数据，各种绑定及函数等
-    const _props = renderDataTree.props
-    for (const key in _props) {
-      if (key.startsWith('on')) {
-        const funName = _props[key]
-        const fun = restoreFunction(_funContext[funName], _funContext[funName])
-        fun.fun = _funContext[funName]
-        value[key] = new Proxy(fun, {})
-      }
-    }
-
-    console.log('上下文', renderDataTree._context)
     return () => {
       // 渲染函数
       return [

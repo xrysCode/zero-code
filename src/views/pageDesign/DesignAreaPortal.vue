@@ -25,8 +25,8 @@ import type { RenderDataTree } from './default-init-data'
 import { useToRenderDataTree } from './render-design-utils'
 
 const data = defaultData.testDataStr
-const renderDataTree = useToRenderDataTree(data, RenderModeler)
-// const renderDataTree = JSON.parse(data)
+// const renderDataTree = useToRenderDataTree(data, RenderModeler)
+const renderDataTree = JSON.parse(data)
 // const renderDataTree = ref<RenderDataTree>(
 //   useToRenderDataTree(data, RenderModeler),
 // )

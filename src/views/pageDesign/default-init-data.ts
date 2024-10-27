@@ -87,7 +87,7 @@ export interface RenderDataTree {
           default: [{
             tagName: 'el-button',
             props: {// 事件监听器应以 onXxx 的形式书写
-              type:"primary", onClick:"Submit('xx')"
+              type:"primary", onClick:"Submit"
             },
             children: {default:["Query"]},
             interceptFlag:true,
@@ -102,7 +102,7 @@ export interface RenderDataTree {
   interceptFlag: true,
 }
 export const testDataStr=JSON.stringify(testData)
-console.log('testDataStr', testDataStr)
+// console.log('testDataStr', testDataStr)
 // debugger
 // let a=useToRenderDataTree(testDataStr,RenderModeler)
 // let b=useObj2StrJson(a)

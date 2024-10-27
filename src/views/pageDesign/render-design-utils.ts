@@ -55,49 +55,6 @@ export const useToRenderDataTree = (
   })
 }
 
-export const useToRenderDataTree2 = (
-  dataRenderStr: string,
-  modelerOrViewerType: DefineComponent | DefineSetupFnComponent<T>,
-  _argsContext,
-  _funContext,
-): RenderDataTree => {
-  return JSON.parse(dataRenderStr, (key: string, value) => {
-    if ('_context' == key) {
-      //上下文 模拟一个上下文环境提供给后续渲染树使用
-    }
-    //将插槽函数包装   children?:  { [key: string]: [RenderDataTree|string] },==>children:{default:()=>xxx
-    if ('children' == key) {
-      for (const key in value) {
-        const slotInfoArr = value[key] as [RenderDataTree | string]
-        const fun = () => {
-          const slotInfoProxyArr = []
-          //组装虚拟节点
-          for (const slotInfo of slotInfoArr) {
-            let vnode = slotInfo
-            if (typeof slotInfo == 'object') {
-              slotInfo.parent = value
-              if (slotInfo.interceptFlag == true) {
-                vnode = h(modelerOrViewerType, { renderDataTree: slotInfo })
-              } else {
-                vnode = h(
-                  resolveComponent(slotInfo.tagName),
-                  slotInfo.props,
-                  slotInfo.children,
-                )
-              }
-            }
-            slotInfoProxyArr.push(vnode)
-          }
-          return slotInfoProxyArr //返回结果
-        }
-        fun.data = slotInfoArr
-        value[key] = new Proxy(fun, {})
-      }
-    }
-    return value
-  })
-}
-
 export const restoreFunction = (methodStr: string, closureArgs?: object) => {
   let result = ''
   if (closureArgs) {
