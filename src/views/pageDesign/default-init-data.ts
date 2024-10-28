@@ -1,22 +1,22 @@
-import type { /*Slot, Slots,*/ VNode, DefineComponent } from 'vue'
+import type {
+  /*Slot, Slots,*/ VNode,
+  DefineComponent,
+  Reactive,
+  Ref,
+} from 'vue'
 import { useToRenderDataTree, useObj2StrJson } from './render-design-utils'
 import RenderModeler from './RenderModeler.vue'
 
-type Children = string | number | boolean | VNode | null | Children[]
-type Slot = () => Children
-type Slots = { [name: string]: Slot }
+// type Children = string | number | boolean | VNode | null | Children[]
+// type Slot = () => Children
+// type Slots = { [name: string]: Slot }
 
 export enum ComponentType {
   button = 'button',
   card = 'card',
   table = 'table',
 }
-// type any
-export interface MethodDesc {
-  args?: string[] //函数参数
-  methodBody: string | (... T)=> T
-  closureArgs?: object //闭包参数
-}
+
 /**
  * 两种方式
  * 1、用div包裹设计要数，好处布局方便，缺点，子元素可能需要很小的宽度，但是父元素占了整行,拖动大小识别传递给子困难
@@ -26,25 +26,32 @@ export interface MethodDesc {
 export interface RenderDataTree {
   type?: ComponentType //类型用来打开什么类型的编辑器 对于渲染没有用
   //当前的上下文环境用来初始化函数及各种响应式数据，以便形成闭包,同时使用渲染组件特点来初始化他
-  _context?: { 
-    reactive?:object,//在使用的时候引用名为 reactiveObject
-    ref?:string[],//在使用的时候引用名为 xxxRef
-    [key: string]: string|object |undefined //这个为string类型的箭头函数 全部是@开头，后面编译后变成on开头
+  _context?: {
+    reactive?: object //在使用的时候引用名为 reactiveObject
+    ref?: { [key: string]: string | number | boolean | null } //在使用的时候引用名为 xxxRef， key名字 value 值
+  } & {
+    [key: string]: string //key是函数名 value是string类型的箭头函数
   }
   tagName: string
   // 事件监听器应以 onXxx 的形式书写
-  props?: object | null//这里有函数需要初始化  onchange='函数的引用'
-  children?:  { [key: string]: [RenderDataTree|string] }//插槽渲染数据说明,代理转换为渲染函数
+  props?: object //这里可能有函数需要初始化，函数key全部是@开头，后面编译后变成on开头，value为_context中的'函数的引用'名
+  children?: { [key: string]: (RenderDataTree | string)[] } //插槽渲染数据说明,代理转换为渲染函数
   interceptFlag?: boolean
-  parent?:RenderDataTree
+  parent?: RenderDataTree
 
   // rangeFlag: RangeEnum //范围标识
   // methods?: { [key: string]: string }
 }
-
+export interface ArgsContext {
+  reactiveObject?: Reactive<object | []>
+  [key: `${string}Ref`]: Ref
+}
+export interface FunContext {
+  [key: string]: string | ((...args: []) => void)
+}
 
 //todo 写一个转换器用来组合数据
- let testData:RenderDataTree = {
+const testData: RenderDataTree = {
   type: ComponentType.card,
   _context: {
     reactive: {
@@ -52,13 +59,14 @@ export interface RenderDataTree {
       region: '',
       date: '',
     },
-    "Submit": `($event) => {
+    // // ref:[""],
+    Submit: `($event) => {
       console.log('submit!',$event,reactiveObject)
     }`,
   },
   tagName: 'el-form',
   props: {
-    ':inline': 'true',
+    ':inline': true,
     ':model': 'reactiveObject',
     class: 'demo-form-inline',
   },
@@ -68,40 +76,44 @@ export interface RenderDataTree {
         tagName: 'el-form-item',
         props: { label: 'Approved by' },
         children: {
-          default: [{
-            tagName: 'el-input',
-            props: {
-              'v-model': 'formInline.user',
-              placeholder: 'Approved by',
-              clearable: true,
+          default: [
+            {
+              tagName: 'el-input',
+              props: {
+                'v-model': 'reactiveObject.user',
+                placeholder: 'Approved by',
+                clearable: true,
+              },
+              interceptFlag: true,
+              // children: { default: [] },
             },
-            interceptFlag:true,
-            // children: { default: [] },
-          }],
+          ],
         },
-        interceptFlag:true,
+        interceptFlag: true,
       },
       {
         tagName: 'el-form-item',
         children: {
-          default: [{
-            tagName: 'el-button',
-            props: {// 事件监听器应以 onXxx 的形式书写
-              type:"primary", onClick:"Submit"
+          default: [
+            {
+              tagName: 'el-button',
+              props: {
+                type: 'primary',
+                '@Click': 'Submit',
+              },
+              children: { default: ['Query'] },
+              interceptFlag: true,
             },
-            children: {default:["Query"]},
-            interceptFlag:true,
-          }
-        ],
+          ],
         },
-        interceptFlag:true,
+        interceptFlag: true,
       },
     ], // 封装这种函数的写法 转换为下面这种  这种结构导致方法执行失败，需要找一直直接得到对象的方式
   },
-  
+
   interceptFlag: true,
 }
-export const testDataStr=JSON.stringify(testData)
+export const testDataStr = JSON.stringify(testData)
 // console.log('testDataStr', testDataStr)
 // debugger
 // let a=useToRenderDataTree(testDataStr,RenderModeler)
@@ -119,14 +131,13 @@ export const testDataStr=JSON.stringify(testData)
 //   },
 //   interceptFlag: true,
 // })
-// export const buttonDefault: string = useObj2StrJson({
-//   type: ComponentType.button,
-//   tagName: 'el-button',
-//   children: {default:['按钮' ]},
-//   interceptFlag: true,
-// })
+export const buttonDefault: string = useObj2StrJson({
+  type: ComponentType.button,
+  tagName: 'el-button',
+  children: { default: ['按钮'] },
+  interceptFlag: true,
+})
 // const test=useToRenderDataTree(cardDefault, RenderModeler)
-
 
 // 回溯组件？
 // export enum RangeEnum {
@@ -134,9 +145,6 @@ export const testDataStr=JSON.stringify(testData)
 //   INNER = 'inner',
 //   END = 'end',
 //   DROP_SLOT = 'drop_slot',
-// }
-// interface MethodDesc{
-//   [key: string]: string
 // }
 
 // export class ComponentWrapper implements DataRenderDesc {

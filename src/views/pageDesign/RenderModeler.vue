@@ -9,7 +9,11 @@ import {
   reactive,
 } from 'vue'
 // import * as baseConfigData from './default-init-data'
-import type { RenderDataTree } from './default-init-data'
+import type {
+  RenderDataTree,
+  ArgsContext,
+  FunContext,
+} from './default-init-data'
 import { ElIcon } from 'element-plus'
 import {
   Delete,
@@ -18,7 +22,6 @@ import {
   CaretTop,
   CaretBottom,
 } from '@element-plus/icons-vue'
-import { before, type forEach } from 'lodash'
 import { restoreFunction } from './render-design-utils'
 import RenderModeler from './RenderModeler.vue'
 
@@ -45,9 +48,9 @@ const activeDrag = (event: MouseEvent) => {
   element.parentElement.parentElement.draggable = true
 }
 //嵌套的上下文如何处理 这里变成多个上下文
-let _context
-let _argsContext = {}
-let _funContext = {}
+let _context: RenderDataTree['_context']
+let _argsContext: ArgsContext
+let _funContext: FunContext
 // let parent = null
 const resolveRenderData = (renderDataTree: RenderDataTree) => {
   if (renderDataTree._context != null) {
@@ -60,27 +63,46 @@ const resolveRenderData = (renderDataTree: RenderDataTree) => {
   for (const key in _context) {
     switch (key) {
       case 'reactive':
-        _argsContext.reactiveObject = reactive(_context[key])
+        _argsContext.reactiveObject = reactive(_context[key]!)
         break
       case 'ref':
-        for (const index in _context[key]) {
-          const name = _context[key][index]
-          _argsContext[name + 'Ref'] = ref(name)
+        const refInfo = _context.ref!
+        for (const nameRef in refInfo) {
+          _argsContext[(nameRef + 'Ref') as `${string}Ref`] = ref(
+            refInfo[nameRef],
+          )
         }
         break
       default: //余下的都视为函数 事件监听器应以 onXxx 的形式书写
         _funContext[key] = _context[key]
     }
   }
+  //运行
+  for (const funName in _funContext) {
+    const fun = restoreFunction(_funContext[funName] as string, _argsContext)
+    fun.data = _funContext[funName]
+    _funContext[funName] = fun
+  }
 
   //解析属性数据，各种绑定及函数等
   const _props = renderDataTree.props
+
+  const _newProps = { ..._props }
+
   for (const key in _props) {
-    if (key.startsWith('on')) {
-      const funName = _props[key]
-      const fun = restoreFunction(_funContext[funName], _argsContext)
-      fun.fun = _funContext[funName]
-      _props[key] = new Proxy(fun, {})
+    if (key == 'v-model') {
+      const value = _props[key] as string
+      _newProps.modelValue = _argsContext[value]
+      _newProps['onUpdate:modelValue'] = $event =>
+        (_argsContext[value] = $event)
+      delete _newProps[key]
+    } else if (key.startsWith(':')) {
+      _newProps[key.substring(1)] = _props[key]
+      delete _newProps[key]
+    } else if (key.startsWith('@')) {
+      const funName = 'on' + key.substring(1)
+      _newProps[funName] = _funContext[_props[key]]
+      delete _newProps[key]
     }
   }
 
@@ -110,6 +132,8 @@ const resolveRenderData = (renderDataTree: RenderDataTree) => {
     }
     fun.data = slotInfoArr
     _children[key] = new Proxy(fun, {})
+
+    return _newProps
   }
 }
 
@@ -118,7 +142,7 @@ export default defineComponent(
     // const pointerRef = inject('pointerRef')
     // console.log(pointerRef)
     const renderDataTree = props.renderDataTree
-    resolveRenderData(renderDataTree)
+    const _newProps = resolveRenderData(renderDataTree)
 
     return () => {
       // 渲染函数
@@ -136,7 +160,7 @@ export default defineComponent(
           [
             h(
               resolveComponent(renderDataTree.tagName),
-              renderDataTree.props,
+              _newProps,
               renderDataTree.children,
             ),
 
