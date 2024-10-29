@@ -27,10 +27,12 @@
       >
     </el-form-item>
   </el-form>
+  <Test22></Test22>
 </template>
 
 <script lang="ts" setup>
-import { reactive } from 'vue'
+import { reactive, inject, provide } from 'vue'
+import Test22 from './Test22.vue'
 const props = defineProps(['p1'])
 const formInline = reactive({
   user: '',
@@ -40,7 +42,8 @@ const formInline = reactive({
 formInline.user = props.p1
 
 const emits = defineEmits(['sub'])
-
+provide('in2', 'test2')
+// const in=inject("in")
 const onSubmit = (event, arg) => {
   console.log('submit!', event, arg, formInline)
   emits('sub', event, arg, formInline)

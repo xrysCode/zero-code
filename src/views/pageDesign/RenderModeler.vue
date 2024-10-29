@@ -3,11 +3,15 @@
 import {
   defineComponent,
   h,
+  provide,
   inject,
   resolveComponent,
   ref,
   reactive,
+  getCurrentInstance,
+  withCtx,
 } from 'vue'
+import type { Ref } from 'vue'
 // import * as baseConfigData from './default-init-data'
 import type {
   RenderDataTree,
@@ -26,125 +30,135 @@ import { restoreFunction } from './render-design-utils'
 import RenderModeler from './RenderModeler.vue'
 
 // import { MsgDto, MsgType, PositionMsgDto } from '@/design/PostMeaagae'
-// const { renderDataTree } = defineProps<{ renderDataTree: RenderDataTree }>()
-function dragstartHandler(ev: DragEvent, renderDataTree: RenderDataTree) {
-  console.log('开始', ev, renderDataTree)
-  // ev.dataTransfer!.setData('text/plain', componentType)
-  // ev.dataTransfer.dropEffect = 'move'
-  // this.$el.querySelector('#designPanel').style.zIndex = 1
-  // this.$el.querySelector('#designPanelIframe').style.zIndex = -1
+
+interface OldActiveEditData {
+  isActive: Ref<boolean, boolean>
+  currentTarget: HTMLElement
 }
-const isActive = ref(false)
-const activeEdit = (event: MouseEvent) => {
-  // if (isActive.value == true) {
-  //   return
-  // }
-  isActive.value = true
-  const element = event.currentTarget as HTMLElement
-  element.classList.add('clickContainer')
-}
-const activeDrag = (event: MouseEvent) => {
-  const element = event.currentTarget! as HTMLElement
-  element.parentElement.parentElement.draggable = true
-}
-//嵌套的上下文如何处理 这里变成多个上下文
-let _context: RenderDataTree['_context']
-let _argsContext: ArgsContext
-let _funContext: FunContext
-// let parent = null
-const resolveRenderData = (renderDataTree: RenderDataTree) => {
-  if (renderDataTree._context != null) {
-    //重置
-    _context = renderDataTree._context
-    _argsContext = {}
-    _funContext = {}
-  }
-
-  for (const key in _context) {
-    switch (key) {
-      case 'reactive':
-        _argsContext.reactiveObject = reactive(_context[key]!)
-        break
-      case 'ref':
-        const refInfo = _context.ref!
-        for (const nameRef in refInfo) {
-          _argsContext[(nameRef + 'Ref') as `${string}Ref`] = ref(
-            refInfo[nameRef],
-          )
-        }
-        break
-      default: //余下的都视为函数 事件监听器应以 onXxx 的形式书写
-        _funContext[key] = _context[key]
-    }
-  }
-  //运行
-  for (const funName in _funContext) {
-    const fun = restoreFunction(_funContext[funName] as string, _argsContext)
-    fun.data = _funContext[funName]
-    _funContext[funName] = fun
-  }
-
-  //解析属性数据，各种绑定及函数等
-  const _props = renderDataTree.props
-
-  const _newProps = { ..._props }
-
-  for (const key in _props) {
-    if (key == 'v-model') {
-      const value = _props[key] as string
-      _newProps.modelValue = _argsContext[value]
-      _newProps['onUpdate:modelValue'] = $event =>
-        (_argsContext[value] = $event)
-      delete _newProps[key]
-    } else if (key.startsWith(':')) {
-      _newProps[key.substring(1)] = _props[key]
-      delete _newProps[key]
-    } else if (key.startsWith('@')) {
-      const funName = 'on' + key.substring(1)
-      _newProps[funName] = _funContext[_props[key]]
-      delete _newProps[key]
-    }
-  }
-
-  const _children = renderDataTree.children
-  for (const key in _children) {
-    const slotInfoArr = _children[key] as [RenderDataTree | string]
-    const fun = () => {
-      const slotInfoProxyArr = []
-      //组装虚拟节点
-      for (const slotInfo of slotInfoArr) {
-        let vnode = slotInfo
-        if (typeof slotInfo == 'object') {
-          slotInfo.parent = renderDataTree
-          if (slotInfo.interceptFlag == true) {
-            vnode = h(RenderModeler, { renderDataTree: slotInfo })
-          } else {
-            vnode = h(
-              resolveComponent(slotInfo.tagName),
-              slotInfo.props,
-              slotInfo.children,
-            )
-          }
-        }
-        slotInfoProxyArr.push(vnode)
-      }
-      return slotInfoProxyArr //返回结果
-    }
-    fun.data = slotInfoArr
-    _children[key] = new Proxy(fun, {})
-
-    return _newProps
-  }
-}
-
+let oldActiveEditData: OldActiveEditData
 export default defineComponent(
   (props: { renderDataTree: RenderDataTree }, other) => {
     // const pointerRef = inject('pointerRef')
     // console.log(pointerRef)
+    const isActive = ref(false)
+    const activeEdit = (event: MouseEvent) => {
+      // @ts-expect-error 自定义为了冒泡不干涉
+      if (event._activeEdit == true) {
+        //冒泡中已经处理
+        return
+      }
+      // @ts-expect-error 自定义为了冒泡不干涉
+      event._activeEdit = true
+      if (oldActiveEditData != null) {
+        oldActiveEditData.isActive.value = false
+        oldActiveEditData.currentTarget.classList.remove('clickContainer')
+      }
+      isActive.value = true
+      const element = event.currentTarget as HTMLElement
+      oldActiveEditData = { isActive, currentTarget: element }
+      element.classList.add('clickContainer')
+    }
     const renderDataTree = props.renderDataTree
-    const _newProps = resolveRenderData(renderDataTree)
+    renderDataTree._ctx = getCurrentInstance()
+    const parentActive = (event: MouseEvent) => {
+      if (renderDataTree.parent) {
+        // renderDataTree.parent._ctx=
+        // event.currentTarget=
+        activeEdit(event)
+      }
+    }
 
+    const _context = renderDataTree.context //: RenderDataTree['context']
+    let _argsContext: ArgsContext
+    let _funContext: FunContext
+    for (const key in _context) {
+      switch (key) {
+        case 'reactive':
+          _argsContext.reactiveObject = reactive(_context[key]!)
+          break
+        case 'ref':
+          const refInfo = _context.ref!
+          for (const nameRef in refInfo) {
+            _argsContext[(nameRef + 'Ref') as `${string}Ref`] = ref(
+              refInfo[nameRef],
+            )
+          }
+          break
+        default: //余下的都视为函数 事件监听器应以 onXxx 的形式书写
+          _funContext[key] = _context[key]
+      }
+    }
+    provide('reactiveObject', _argsContext)
     return () => {
+      //嵌套的上下文如何处理 这里变成多个上下文
+
+      if (renderDataTree.context != null) {
+        //重置
+        _argsContext = {}
+        _funContext = {}
+      }
+
+      //运行
+      for (const funName in _funContext) {
+        const fun = restoreFunction(
+          _funContext[funName] as string,
+          _argsContext,
+        )
+        fun.data = _funContext[funName]
+        _funContext[funName] = fun
+      }
+
+      //解析属性数据，各种绑定及函数等
+      const _props = { ...renderDataTree.props }
+      for (const key in renderDataTree.props) {
+        const value = _props[key] as string
+        if (key == 'v-model') {
+          _props.modelValue = eval(`_argsContext.${value}`) //_argsContext 类似于$setup
+          const f = eval(`$event =>{_argsContext.${value}=$event}`)
+
+          _props['onUpdate:modelValue'] = f
+          delete _props[key]
+        } else if (key.startsWith(':')) {
+          _props[key.substring(1)] = eval(`_argsContext.${value}`) || value
+          delete _props[key]
+        } else if (key.startsWith('@')) {
+          const funName = 'on' + key.substring(1)
+          _props[funName] = _funContext[value]
+          delete _props[key]
+        }
+      }
+      renderDataTree._props = _props
+
+      const _children = renderDataTree.children
+      for (const key in _children) {
+        const slotInfoArr = _children[key] as [RenderDataTree | string]
+        const fun = () => {
+          const slotInfoProxyArr = []
+          //组装虚拟节点
+          for (const slotInfo of slotInfoArr) {
+            let vnode = slotInfo
+            if (typeof slotInfo == 'object') {
+              slotInfo.parent = renderDataTree
+              if (slotInfo.interceptFlag == true) {
+                vnode = h(RenderModeler, { renderDataTree: slotInfo })
+              } else {
+                vnode = h(
+                  resolveComponent(slotInfo.tagName),
+                  slotInfo._props,
+                  slotInfo.children,
+                )
+              }
+            }
+            slotInfoProxyArr.push(vnode)
+          }
+          return slotInfoProxyArr //返回结果
+        }
+        fun.data = slotInfoArr
+        _children[key] = new Proxy(fun, {})
+      }
+
+      // resolveRenderData(renderDataTree)
+
       // 渲染函数
       return [
         h(
@@ -160,16 +174,18 @@ export default defineComponent(
           [
             h(
               resolveComponent(renderDataTree.tagName),
-              _newProps,
+              renderDataTree._props,
               renderDataTree.children,
             ),
 
             isActive.value
               ? h(ElIcon, { class: 'editShow' }, [
                   h(Rank, { onMousedown: activeDrag }),
-                  h(CaretTop),
-                  h(CaretBottom),
-                  h(Delete),
+                  h(CaretTop, { onMousedown: parentActive }),
+                  h(CaretBottom, {
+                    /*onMousedown: childActive*/
+                  }),
+                  h(Delete, {}),
                 ])
               : null,
           ],
@@ -184,6 +200,20 @@ export default defineComponent(
   },
 )
 
+// const { renderDataTree } = defineProps<{ renderDataTree: RenderDataTree }>()
+function dragstartHandler(ev: DragEvent, renderDataTree: RenderDataTree) {
+  console.log('开始', ev, renderDataTree)
+  // ev.dataTransfer!.setData('text/plain', componentType)
+  // ev.dataTransfer.dropEffect = 'move'
+  // this.$el.querySelector('#designPanel').style.zIndex = 1
+  // this.$el.querySelector('#designPanelIframe').style.zIndex = -1
+}
+
+const activeDrag = (event: MouseEvent) => {
+  const element = event.currentTarget! as HTMLElement
+  element.parentElement.parentElement.draggable = true
+}
+
 function dragendHandler(ev: DragEvent, renderDataTree: RenderDataTree) {
   console.log('拖拽结束', ev)
   // this.$el.querySelector('#designPanel').style.zIndex = -1
@@ -191,7 +221,7 @@ function dragendHandler(ev: DragEvent, renderDataTree: RenderDataTree) {
 }
 //     /////////////////////////////////////////////
 // function dragoverHandler(ev: DragEvent) {
-//   // debugger
+
 //   ev.preventDefault()
 //   console.log('拖拽结束', ev)
 // const el = this.$el.querySelector('#designPanelIframe') as HTMLIFrameElement
@@ -199,7 +229,7 @@ function dragendHandler(ev: DragEvent, renderDataTree: RenderDataTree) {
 // const win = el.contentWindow
 
 // const evMeaagae = new PositionMsgDto(ev, el.getBoundingClientRect())
-// debugger;
+
 // "http://localhost:5173/?iframe=true"
 // win!.postMessage(
 //   new MsgDto(MsgType.dragover, evMeaagae, undefined),
