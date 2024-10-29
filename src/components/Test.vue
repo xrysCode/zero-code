@@ -11,8 +11,8 @@ import Test3 from './Test3.vue'
 import { useTemplateRef, onMounted, ref, provide } from 'vue'
 const pName = ref('user111')
 const pRef = useTemplateRef('pointerRef')
-debugger
-provide('in', 'test')
+
+provide('inner', 'test')
 onMounted(() => {
   console.log(pRef)
 })

@@ -32,7 +32,7 @@ export const useToRenderDataTree = (
           for (const slotInfo of slotInfoArr) {
             let vnode = slotInfo
             if (typeof slotInfo == 'object') {
-              slotInfo.parent = value
+              slotInfo._parent = value
               if (slotInfo.interceptFlag == true) {
                 vnode = h(modelerOrViewerType, { renderDataTree: slotInfo })
               } else {

@@ -42,11 +42,14 @@ const formInline = reactive({
 formInline.user = props.p1
 
 const emits = defineEmits(['sub'])
-provide('in2', 'test2')
-// const in=inject("in")
+
+debugger
+provide('inner', 'test2xx')
+const inner = inject('inner')
+
 const onSubmit = (event, arg) => {
   console.log('submit!', event, arg, formInline)
-  emits('sub', event, arg, formInline)
+  emits('sub', inner, event, arg, formInline)
   console.log('submit!', event, arg, JSON.stringify(formInline))
 }
 defineExpose({

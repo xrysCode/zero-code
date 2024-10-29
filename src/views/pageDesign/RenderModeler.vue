@@ -59,45 +59,40 @@ export default defineComponent(
       element.classList.add('clickContainer')
     }
     const renderDataTree = props.renderDataTree
-    renderDataTree._ctx = getCurrentInstance()
+    // renderDataTree._ctx = getCurrentInstance()
     const parentActive = (event: MouseEvent) => {
-      if (renderDataTree.parent) {
+      if (renderDataTree._parent) {
         // renderDataTree.parent._ctx=
         // event.currentTarget=
         activeEdit(event)
       }
     }
 
-    const _context = renderDataTree.context //: RenderDataTree['context']
-    let _argsContext: ArgsContext
-    let _funContext: FunContext
-    for (const key in _context) {
-      switch (key) {
-        case 'reactive':
-          _argsContext.reactiveObject = reactive(_context[key]!)
-          break
-        case 'ref':
-          const refInfo = _context.ref!
-          for (const nameRef in refInfo) {
-            _argsContext[(nameRef + 'Ref') as `${string}Ref`] = ref(
-              refInfo[nameRef],
-            )
-          }
-          break
-        default: //余下的都视为函数 事件监听器应以 onXxx 的形式书写
-          _funContext[key] = _context[key]
+    /**数据渲染解析 */
+    let _argsContext = inject('_argsContext', {}) as ArgsContext
+    let _funContext = inject('_funContext', {}) as FunContext
+    if (renderDataTree.context != null) {
+      _argsContext = {}
+      _funContext = {}
+      provide('_argsContext', _argsContext)
+      provide('_funContext', _funContext)
+      for (const key in renderDataTree.context) {
+        switch (key) {
+          case 'reactive':
+            _argsContext.reactiveObject = reactive(renderDataTree.context[key]!)
+            break
+          case 'ref':
+            const refInfo = renderDataTree.context.ref!
+            for (const nameRef in refInfo) {
+              _argsContext[(nameRef + 'Ref') as `${string}Ref`] = ref(
+                refInfo[nameRef],
+              )
+            }
+            break
+          default: //余下的都视为函数 事件监听器应以 onXxx 的形式书写
+            _funContext[key] = renderDataTree.context[key]
+        }
       }
-    }
-    provide('reactiveObject', _argsContext)
-    return () => {
-      //嵌套的上下文如何处理 这里变成多个上下文
-
-      if (renderDataTree.context != null) {
-        //重置
-        _argsContext = {}
-        _funContext = {}
-      }
-
       //运行
       for (const funName in _funContext) {
         const fun = restoreFunction(
@@ -107,16 +102,18 @@ export default defineComponent(
         fun.data = _funContext[funName]
         _funContext[funName] = fun
       }
+    }
 
+    return () => {
       //解析属性数据，各种绑定及函数等
-      const _props = { ...renderDataTree.props }
+      const _props = renderDataTree.props ? { ...renderDataTree.props } : {}
       for (const key in renderDataTree.props) {
         const value = _props[key] as string
         if (key == 'v-model') {
           _props.modelValue = eval(`_argsContext.${value}`) //_argsContext 类似于$setup
-          const f = eval(`$event =>{_argsContext.${value}=$event}`)
-
-          _props['onUpdate:modelValue'] = f
+          _props['onUpdate:modelValue'] = eval(
+            `$event =>{_argsContext.${value}=$event}`,
+          )
           delete _props[key]
         } else if (key.startsWith(':')) {
           _props[key.substring(1)] = eval(`_argsContext.${value}`) || value
@@ -127,18 +124,22 @@ export default defineComponent(
           delete _props[key]
         }
       }
-      renderDataTree._props = _props
+      // renderDataTree._props = _props
 
       const _children = renderDataTree.children
       for (const key in _children) {
-        const slotInfoArr = _children[key] as [RenderDataTree | string]
+        const slotInfoArr = _children[key] as (RenderDataTree | string)[]
+        //第一次的调用需要解析替换成为渲染函数后面再次调用的时候已经是函数了 _ctx是框架的
+        if (slotInfoArr instanceof Function || key == '_ctx') {
+          continue
+        }
         const fun = () => {
           const slotInfoProxyArr = []
           //组装虚拟节点
           for (const slotInfo of slotInfoArr) {
             let vnode = slotInfo
             if (typeof slotInfo == 'object') {
-              slotInfo.parent = renderDataTree
+              slotInfo._parent = renderDataTree
               if (slotInfo.interceptFlag == true) {
                 vnode = h(RenderModeler, { renderDataTree: slotInfo })
               } else {
@@ -157,8 +158,6 @@ export default defineComponent(
         _children[key] = new Proxy(fun, {})
       }
 
-      // resolveRenderData(renderDataTree)
-
       // 渲染函数
       return [
         h(
@@ -174,7 +173,7 @@ export default defineComponent(
           [
             h(
               resolveComponent(renderDataTree.tagName),
-              renderDataTree._props,
+              _props,
               renderDataTree.children,
             ),
 

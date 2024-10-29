@@ -35,10 +35,10 @@ export interface RenderDataTree {
   tagName: string
   // 事件监听器应以 onXxx 的形式书写
   props?: { [key: string]: string | object | boolean } //这里可能有函数需要初始化，函数key全部是@开头，后面编译后变成on开头，value为_context中的'函数的引用'名
-  _props?: { [key: string]: string | object } //内部转换后的props 用于渲染端，无需填写，自动转换
+  // _props?: { [key: string]: string | object } //内部转换后的props 用于渲染端，无需填写，自动转换
   children?: { [key: string]: (RenderDataTree | string)[] } //插槽渲染数据说明,代理转换为渲染函数
   interceptFlag?: boolean
-  parent?: RenderDataTree
+  _parent?: RenderDataTree
   _ctx?: unknown //当前级的实例
   // rangeFlag: RangeEnum //范围标识
   // methods?: { [key: string]: string }
@@ -56,7 +56,7 @@ const testData: RenderDataTree = {
   type: ComponentType.card,
   context: {
     reactive: {
-      user: 'u',
+      user: '',
       region: '',
       date: '',
     },
