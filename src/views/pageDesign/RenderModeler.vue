@@ -106,57 +106,7 @@ export default defineComponent(
 
     return () => {
       //解析属性数据，各种绑定及函数等
-      const _props = renderDataTree.props ? { ...renderDataTree.props } : {}
-      for (const key in renderDataTree.props) {
-        const value = _props[key] as string
-        if (key == 'v-model') {
-          _props.modelValue = eval(`_argsContext.${value}`) //_argsContext 类似于$setup
-          _props['onUpdate:modelValue'] = eval(
-            `$event =>{_argsContext.${value}=$event}`,
-          )
-          delete _props[key]
-        } else if (key.startsWith(':')) {
-          _props[key.substring(1)] = eval(`_argsContext.${value}`) || value
-          delete _props[key]
-        } else if (key.startsWith('@')) {
-          const funName = 'on' + key.substring(1)
-          _props[funName] = _funContext[value]
-          delete _props[key]
-        }
-      }
-      // renderDataTree._props = _props
-
-      const _children = renderDataTree.children
-      for (const key in _children) {
-        const slotInfoArr = _children[key] as (RenderDataTree | string)[]
-        //第一次的调用需要解析替换成为渲染函数后面再次调用的时候已经是函数了 _ctx是框架的
-        if (slotInfoArr instanceof Function || key == '_ctx') {
-          continue
-        }
-        const fun = () => {
-          const slotInfoProxyArr = []
-          //组装虚拟节点
-          for (const slotInfo of slotInfoArr) {
-            let vnode = slotInfo
-            if (typeof slotInfo == 'object') {
-              slotInfo._parent = renderDataTree
-              if (slotInfo.interceptFlag == true) {
-                vnode = h(RenderModeler, { renderDataTree: slotInfo })
-              } else {
-                vnode = h(
-                  resolveComponent(slotInfo.tagName),
-                  slotInfo._props,
-                  slotInfo.children,
-                )
-              }
-            }
-            slotInfoProxyArr.push(vnode)
-          }
-          return slotInfoProxyArr //返回结果
-        }
-        fun.data = slotInfoArr
-        _children[key] = new Proxy(fun, {})
-      }
+      convertSolts(renderDataTree, _argsContext, _funContext)
 
       // 渲染函数
       return [
@@ -172,8 +122,10 @@ export default defineComponent(
           },
           [
             h(
-              resolveComponent(renderDataTree.tagName),
-              _props,
+              renderDataTree.tagName.indexOf('-') > 0
+                ? resolveComponent(renderDataTree.tagName)
+                : renderDataTree.tagName,
+              renderDataTree._props,
               renderDataTree.children,
             ),
 
@@ -198,6 +150,91 @@ export default defineComponent(
     // emits: ['t1'],
   },
 )
+
+function convertProps(
+  renderDataTree: RenderDataTree,
+  _argsContext: ArgsContext,
+  _funContext: FunContext,
+): { [key: string]: string | object } {
+  const _props = renderDataTree.props ? { ...renderDataTree.props } : {}
+  for (const key in renderDataTree.props) {
+    const value = _props[key] as string
+    if (key == 'v-model') {
+      _props.modelValue = eval(`_argsContext.${value}`) //_argsContext 类似于$setup
+      _props['onUpdate:modelValue'] = eval(
+        `$event =>{_argsContext.${value}=$event}`,
+      )
+      // _props['onUpdate:modelValue'] = eval(
+      //   `(value) => emit('update:modelValue', value)`,
+      // )
+      delete _props[key]
+    } else if (key.startsWith(':')) {
+      _props[key.substring(1)] = eval(`_argsContext.${value}`) || value
+      delete _props[key]
+    } else if (key.startsWith('@')) {
+      const funName = 'on' + key.substring(1)
+      _props[funName] = _funContext[value]
+      delete _props[key]
+    }
+  }
+  return _props
+}
+
+function convertSolts(
+  renderDataTree: RenderDataTree,
+  _argsContext: ArgsContext,
+  _funContext: FunContext,
+  _slotValue?: object, //todo 将来变成多个插槽变量的时候需要使用一个对象+参数的形式
+) {
+  const _props = convertProps(renderDataTree, _argsContext, _funContext)
+  renderDataTree._props = _props
+  const _children = renderDataTree.children
+  for (const key in _children) {
+    let slotInfoArr = _children[key] as (RenderDataTree | string)[]
+    if (key == '_ctx') {
+      continue
+    }
+    //第一次的调用需要解析替换成为渲染函数后面再次调用的时候已经是函数了 _ctx是框架的
+    if (slotInfoArr instanceof Function) {
+      //为了表格插槽参数多次调用的能够准确
+      slotInfoArr = slotInfoArr.data
+      // continue
+    }
+
+    const fun = (scope: object | undefined) => {
+      if (scope == null) {
+        scope = _slotValue
+      }
+      const slotInfoProxyArr = []
+      //组装虚拟节点
+      for (const slotInfo of slotInfoArr) {
+        let vnode = slotInfo
+        if (typeof slotInfo == 'object') {
+          slotInfo._parent = renderDataTree
+          if (slotInfo.interceptFlag == true) {
+            vnode = h(RenderModeler, { renderDataTree: slotInfo })
+          } else {
+            convertSolts(slotInfo, _argsContext, _funContext, scope)
+            vnode = h(
+              slotInfo.tagName.indexOf('-') > 0
+                ? resolveComponent(slotInfo.tagName)
+                : slotInfo.tagName,
+              slotInfo._props,
+              slotInfo.children, //这里要转换为渲染函数
+            )
+          }
+        } else if (slotInfo.startsWith('{{') && slotInfo.endsWith('}}')) {
+          //字符串
+          vnode = eval(slotInfo.substring(2, slotInfo.length - 2))
+        }
+        slotInfoProxyArr.push(vnode)
+      }
+      return slotInfoProxyArr //返回结果
+    }
+    fun.data = slotInfoArr
+    _children[key] = new Proxy(fun, {})
+  }
+}
 
 // const { renderDataTree } = defineProps<{ renderDataTree: RenderDataTree }>()
 function dragstartHandler(ev: DragEvent, renderDataTree: RenderDataTree) {
@@ -282,6 +319,7 @@ function dragendHandler(ev: DragEvent, renderDataTree: RenderDataTree) {
   top: 0px;
   left: 0px;
   position: absolute;
+  z-index: 1;
 }
 // .editHide {
 //   display: none;

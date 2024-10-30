@@ -35,8 +35,8 @@ export interface RenderDataTree {
   tagName: string
   // 事件监听器应以 onXxx 的形式书写
   props?: { [key: string]: string | object | boolean } //这里可能有函数需要初始化，函数key全部是@开头，后面编译后变成on开头，value为_context中的'函数的引用'名
-  // _props?: { [key: string]: string | object } //内部转换后的props 用于渲染端，无需填写，自动转换
-  children?: { [key: string]: (RenderDataTree | string)[] } //插槽渲染数据说明,代理转换为渲染函数
+  _props?: { [key: string]: string | object } //内部转换后的props 用于渲染端，无需填写，自动转换
+  children?: { [key: string]: (RenderDataTree | string)[] } //插槽渲染数据说明,代理转换为渲染函数 插槽参数统一为scope不支持解构 字符串取值为{{scope.row.xxx}} 多插槽嵌套参数的暂时无
   interceptFlag?: boolean
   _parent?: RenderDataTree
   _ctx?: unknown //当前级的实例
@@ -52,7 +52,7 @@ export interface FunContext {
 }
 
 //todo 写一个转换器用来组合数据
-const testData: RenderDataTree = {
+const formData: RenderDataTree = {
   type: ComponentType.card,
   context: {
     reactive: {
@@ -114,7 +114,219 @@ const testData: RenderDataTree = {
 
   interceptFlag: true,
 }
-export const testDataStr = JSON.stringify(testData)
+export const formDataStr = JSON.stringify(formData)
+
+const tableData: RenderDataTree = {
+  context: {
+    reactive: [
+      {
+        date: '2016-05-03',
+        name: 'Tom',
+        state: 'California',
+        city: 'Los Angeles',
+        address: 'No. 189, Grove St, Los Angeles',
+        zip: 'CA 90036',
+      },
+    ],
+    // // ref:[""],
+    Submit: `($event) => {
+      console.log('submit!',$event,reactiveObject)
+    }`,
+  },
+  tagName: 'el-table',
+  props: {
+    ':data': 'reactiveObject',
+    style: { width: '100%' },
+  },
+  children: {
+    default: [
+      {
+        tagName: 'el-table-column',
+        props: { prop: 'date', label: 'Date', width: '150' },
+        // interceptFlag: true,
+      },
+      {
+        tagName: 'el-table-column',
+        props: { label: 'Delivery Info' },
+        // props: { prop: 'name', label: 'Name', width: '120' },
+        children: {
+          default: [
+            {
+              tagName: 'el-table-column',
+              props: {
+                prop: 'name',
+                label: 'Name',
+                width: '120',
+              },
+              // interceptFlag: true,
+            },
+            {
+              tagName: 'el-table-column',
+              props: {
+                label: 'Address Info',
+              },
+              children: {
+                default: [
+                  {
+                    tagName: 'el-table-column',
+                    props: {
+                      prop: 'state',
+                      label: 'State',
+                      width: '120',
+                    },
+                  },
+                  {
+                    tagName: 'el-table-column',
+                    props: {
+                      prop: 'city',
+                      label: 'City',
+                      width: '120',
+                    },
+                  },
+                  {
+                    tagName: 'el-table-column',
+                    props: {
+                      prop: 'address',
+                      label: 'Address',
+                      width: '120',
+                    },
+                  },
+                  // {
+                  //   tagName: 'el-table-column',
+                  //   props: {
+                  //     prop: 'zip',
+                  //     label: 'Zip',
+                  //     width: '120',
+                  //   },
+                  // },
+                  {
+                    tagName: 'el-table-column',
+                    props: { width: '120' },
+                    children: {
+                      header: ['一个列头'],
+                      default: [
+                        {
+                          tagName: 'div',
+                          children: { default: ['{{scope.row.zip}}'] },
+                        },
+                      ],
+                    },
+                  },
+                ],
+              },
+              // interceptFlag: true,
+            },
+          ],
+        },
+        // interceptFlag: true,
+      },
+    ],
+  },
+
+  interceptFlag: true,
+}
+
+export const tableDataStr = JSON.stringify(tableData)
+
+const menuData: RenderDataTree = {
+  // type: ComponentType.card,
+  context: {
+    ref: { activeIndex: '1' },
+    handleSelect: `(key, keyPath) => {
+      console.log(key, keyPath)
+    }`,
+  },
+  tagName: 'el-menu',
+  props: {
+    ':default-active': 'activeIndexRef',
+    ':ellipsis': 'false',
+    class: 'el-menu-demo',
+    mode: 'horizontal',
+    '@Select': 'handleSelect',
+  },
+  children: {
+    default: [
+      {
+        tagName: 'el-menu-item',
+        props: { index: '0' },
+        children: {
+          default: [
+            {
+              tagName: 'img',
+              props: {
+                style: { width: '100px' },
+                src: 'http://element-plus.org/images/element-plus-logo.svg',
+                alt: 'Element logo',
+              },
+              interceptFlag: true,
+              // children: { default: [] },
+            },
+          ],
+        },
+        interceptFlag: true,
+      },
+      {
+        tagName: 'el-menu-item',
+        props: { index: '1' },
+        children: {
+          default: ['Processing Center'],
+        },
+        interceptFlag: true,
+      },
+      {
+        tagName: 'el-sub-menu',
+        props: { index: '2' },
+        children: {
+          title: ['Workspace'],
+          default: [
+            {
+              tagName: 'el-menu-item',
+              props: {
+                index: '2-1',
+              },
+              children: { default: ['item one'] },
+              interceptFlag: true,
+            },
+            {
+              tagName: 'el-menu-item',
+              props: {
+                index: '2-2',
+              },
+              children: { default: ['item two'] },
+              interceptFlag: true,
+            },
+            {
+              tagName: 'el-menu-item',
+              props: {
+                index: '2-3',
+              },
+              children: {
+                title: ['item four'],
+                default: [
+                  {
+                    tagName: 'el-menu-item',
+                    props: {
+                      index: '2-4-1',
+                    },
+                    children: {
+                      default: ['item one'],
+                    },
+                  },
+                ],
+              },
+              interceptFlag: true,
+            },
+          ],
+        },
+        interceptFlag: true,
+      },
+    ], // 封装这种函数的写法 转换为下面这种  这种结构导致方法执行失败，需要找一直直接得到对象的方式
+  },
+
+  interceptFlag: true,
+}
+export const menuDataStr = JSON.stringify(menuData)
+
 // console.log('testDataStr', testDataStr)
 // debugger
 // let a=useToRenderDataTree(testDataStr,RenderModeler)
