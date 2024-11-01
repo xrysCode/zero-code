@@ -4,7 +4,7 @@ import type {
   Reactive,
   Ref,
 } from 'vue'
-import { useToRenderDataTree, useObj2StrJson } from './render-design-utils'
+import { useObj2StrJson } from './render-design-utils'
 import RenderModeler from './RenderModeler.vue'
 
 // type Children = string | number | boolean | VNode | null | Children[]
@@ -24,7 +24,8 @@ export enum ComponentType {
  */
 //组合组件和插槽都用div包裹。以便产生线框
 export interface RenderDataTree {
-  type?: ComponentType //类型用来打开什么类型的编辑器 对于渲染没有用
+  id: string
+  // type?: ComponentType //类型用来打开什么类型的编辑器 对于渲染没有用   tagName来代替这个值
   //当前的上下文环境用来初始化函数及各种响应式数据，以便形成闭包,同时使用渲染组件特点来初始化他
   context?: {
     reactive?: object //在使用的时候引用名为 reactiveObject
@@ -33,10 +34,10 @@ export interface RenderDataTree {
     [key: string]: string //key是函数名 value是string类型的箭头函数
   }
   tagName: string
-  // 事件监听器应以 onXxx 的形式书写
   props?: { [key: string]: string | object | boolean } //这里可能有函数需要初始化，函数key全部是@开头，后面编译后变成on开头，value为_context中的'函数的引用'名
   _props?: { [key: string]: string | object } //内部转换后的props 用于渲染端，无需填写，自动转换
-  children?: { [key: string]: (RenderDataTree | string)[] } //插槽渲染数据说明,代理转换为渲染函数 插槽参数统一为scope不支持解构 字符串取值为{{scope.row.xxx}} 多插槽嵌套参数的暂时无
+  children?: { [key: string]: (RenderDataTree | string)[] | (() => VNode[]) } //插槽渲染数据说明,代理转换为渲染函数 插槽参数统一为scope不支持解构 字符串取值为{{scope.row.xxx}} 多插槽嵌套参数的暂时无
+  // _children?: { [key: string]: () => VNode[] }
   interceptFlag?: boolean
   _parent?: RenderDataTree
   _ctx?: unknown //当前级的实例
@@ -344,12 +345,11 @@ export const menuDataStr = JSON.stringify(menuData)
 //   },
 //   interceptFlag: true,
 // })
-export const buttonDefault: string = useObj2StrJson({
-  type: ComponentType.button,
-  tagName: 'el-button',
-  children: { default: ['按钮'] },
-  interceptFlag: true,
-})
+// export const buttonDefault: string = useObj2StrJson({
+//   tagName: 'el-button',
+//   children: { default: ['按钮'] },
+//   interceptFlag: true,
+// })
 // const test=useToRenderDataTree(cardDefault, RenderModeler)
 
 // 回溯组件？

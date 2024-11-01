@@ -41,7 +41,7 @@
 <script lang="ts" setup>
 import { Delete, Edit, Search, Share, Upload } from '@element-plus/icons-vue'
 // import { ElButton } from 'element-plus'
-import { buttonDefault } from './default-init-data'
+// import { buttonDefault } from './default-init-data'
 import { ref } from 'vue'
 import IconTooling from '@/components/icons/IconTooling.vue'
 import type { RenderDataTree, ComponentType } from './default-init-data'
@@ -61,28 +61,28 @@ const componentBase: [ComponentInfo] = [
     type: 'button',
     showContent: '按钮',
     desc: '一个按钮',
-    dataRender: buttonDefault,
+    // dataRender: buttonDefault,
   },
   {
     icon: Edit,
     type: 'input',
     showContent: '输入框',
     desc: '普通输入框',
-    dataRender: buttonDefault,
+    // dataRender: buttonDefault,
   },
   {
     icon: Edit,
     type: 'input',
     showContent: '参数输入框',
     desc: '函数输入框',
-    dataRender: buttonDefault,
+    // dataRender: buttonDefault,
   },
   {
     icon: Edit,
     type: 'input',
     showContent: '表格',
     desc: '表格',
-    dataRender: buttonDefault,
+    // dataRender: buttonDefault,
   },
 ]
 

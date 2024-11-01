@@ -12,16 +12,12 @@ import type { MethodDesc, RenderDataTree } from './default-init-data'
  * @param dataRenderStr 渲染字符串
  * @returns
  */
-export const useToRenderDataTree = (
-  dataRenderStr: string,
-  modelerOrViewerType: DefineComponent | DefineSetupFnComponent<T>,
-  _argsContext,
-  _funContext,
-): RenderDataTree => {
+export const useToRenderDataTree = (dataRenderStr: string): RenderDataTree => {
   return JSON.parse(dataRenderStr, (key: string, value) => {
     if ('_context' == key) {
       //上下文 模拟一个上下文环境提供给后续渲染树使用
     }
+
     //将插槽函数包装   children?:  { [key: string]: [RenderDataTree|string] },==>children:{default:()=>xxx
     if ('children' == key) {
       for (const key in value) {
@@ -64,7 +60,7 @@ export const restoreFunction = (methodStr: string, closureArgs?: object) => {
 }
 
 const _convertData2StrHandler = (key: string, value: any) => {
-  if (value.parent) {
+  if (key.startsWith('_')) {
     return
   }
   if (value instanceof Function) {

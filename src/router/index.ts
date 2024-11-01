@@ -12,7 +12,9 @@ const router = createRouter({
     {
       path: '/test',
       name: 'test',
-      component: () => import('../components/Test.vue'),
+      // component: () => import('../components/Test.vue'),
+      component: () =>
+        import('../views/pageDesign/componentDesc/ElTableEdit.vue'),
     },
     {
       path: '/system',

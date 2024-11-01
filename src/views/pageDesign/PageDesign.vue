@@ -10,10 +10,16 @@
       <el-header><TopOptions></TopOptions></el-header>
       <el-main>
         <iframe
-          id="designPanelIframe"
-          name="designPanelIframe"
+          id="designIframe"
+          name="designIframe"
+          ref="designIframe"
           src="/system/designArea"
           style="height: 100dvh; width: 100%"
+          @click="
+            () => {
+              alert('xx')
+            }
+          "
         ></iframe>
         <!-- <DesignArea></DesignArea> -->
         <!-- <div   @dragover="dragoverHandler"
@@ -27,7 +33,18 @@
       </el-main>
     </el-container>
 
-    <el-aside class="aside"><RightOptions></RightOptions></el-aside>
+    <el-aside class="aside">
+      <!-- <RightOptions v-model="activeRanderData"></RightOptions> -->
+      <component
+        v-if="activeRanderData"
+        :is="activeComponent"
+        v-model="activeRanderData"
+      ></component>
+      <el-empty
+        v-else
+        description="选中设计区域组件, 以便进行更加详细的设计。"
+      />
+    </el-aside>
   </el-container>
 </template>
 
@@ -36,19 +53,60 @@ import LeftOptions from './LeftOptions.vue'
 import RightOptions from './RightOptions.vue'
 import TopOptions from './TopOptions.vue'
 import DesignArea from './DesignAreaPortal.vue'
-import { defineComponent } from 'vue'
-import * as baseConfigData from './default-init-data'
-// import { MsgDto, MsgType, PositionMsgDto } from '@/design/PostMeaagae'
-// import MenuWrapper from '@/design/comWrapper/MenuWrapper.vue'
-// import LayoutEditer from "./comWrapper/LayoutEditer.vue";
+import {
+  defineComponent,
+  useTemplateRef,
+  onMounted,
+  reactive,
+  ref,
+  computed,
+} from 'vue'
+import type { DefineComponent } from 'vue'
+import * as defaultData from './default-init-data'
+import type { RenderDataTree } from './default-init-data'
 
-const props = defineProps({
-  name: String,
-  // id: [Number, String],
-  // msg: { type: String, required: true },
-  // metadata: null,
-  // designUrl: { type: String, default: 'http://localhost:5173/?iframe=true' },
-})
+const components = import.meta.glob('./componentDesc/*.vue')
+const componentObj = {}
+for (const path in components) {
+  const componentName = path
+    .replace(/.+\/(\w+)\.vue/, '$1')
+    .replace(/([A-Z])/g, (match, p1) => '-' + p1.toLowerCase())
+    .substring(1)
+  componentObj[componentName] = components[path]
+}
+
+const data = defaultData.tableDataStr
+const renderDataTree = JSON.parse(data)
+
+// const designIframe = useTemplateRef('designIframe')
+// onMounted(() => {
+//   const el = designIframe.value as HTMLIFrameElement
+// })
+
+const activeRanderData = ref<RenderDataTree>()
+const activeComponent = computed(
+  () => componentObj[renderDataTree.tagName + '-edit'],
+)
+window.addEventListener(
+  'message',
+  messageEvent => {
+    if (messageEvent.source.name != 'designIframe') {
+      return
+    }
+    activeRanderData.value = JSON.parse(messageEvent.data)
+  },
+  false,
+)
+// renderDataTree.value.tagName
+
+// const props = defineProps({
+//   name: String,
+//   // id: [Number, String],
+//   // msg: { type: String, required: true },
+//   // metadata: null,
+//   // designUrl: { type: String, default: 'http://localhost:5173/?iframe=true' },
+// })
+const changeData = () => {}
 
 function dragstartHandler(ev: DragEvent, componentType: string) {
   console.log('开始', ev, componentType)

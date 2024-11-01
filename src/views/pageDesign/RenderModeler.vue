@@ -26,7 +26,7 @@ import {
   CaretTop,
   CaretBottom,
 } from '@element-plus/icons-vue'
-import { restoreFunction } from './render-design-utils'
+import { restoreFunction, useObj2StrJson } from './render-design-utils'
 import RenderModeler from './RenderModeler.vue'
 
 // import { MsgDto, MsgType, PositionMsgDto } from '@/design/PostMeaagae'
@@ -36,15 +36,16 @@ interface OldActiveEditData {
   currentTarget: HTMLElement
 }
 let oldActiveEditData: OldActiveEditData
+
+let activeRenderDataTree: RenderDataTree
 export default defineComponent(
   (props: { renderDataTree: RenderDataTree }, other) => {
     // const pointerRef = inject('pointerRef')
     // console.log(pointerRef)
     const isActive = ref(false)
     const activeEdit = (event: MouseEvent) => {
-      // @ts-expect-error 自定义为了冒泡不干涉
+      // @ts-expect-error 自定义为了冒泡不干涉 冒泡中已经处理
       if (event._activeEdit == true) {
-        //冒泡中已经处理
         return
       }
       // @ts-expect-error 自定义为了冒泡不干涉
@@ -57,6 +58,12 @@ export default defineComponent(
       const element = event.currentTarget as HTMLElement
       oldActiveEditData = { isActive, currentTarget: element }
       element.classList.add('clickContainer')
+      activeRenderDataTree = renderDataTree
+      //传递数据
+      window.parent.postMessage(
+        useObj2StrJson(renderDataTree),
+        window.parent.origin,
+      )
     }
     const renderDataTree = props.renderDataTree
     // renderDataTree._ctx = getCurrentInstance()
@@ -155,7 +162,7 @@ function convertProps(
   renderDataTree: RenderDataTree,
   _argsContext: ArgsContext,
   _funContext: FunContext,
-): { [key: string]: string | object } {
+) {
   const _props = renderDataTree.props ? { ...renderDataTree.props } : {}
   for (const key in renderDataTree.props) {
     const value = _props[key] as string
@@ -177,7 +184,7 @@ function convertProps(
       delete _props[key]
     }
   }
-  return _props
+  renderDataTree._props = _props
 }
 
 function convertSolts(
@@ -186,11 +193,11 @@ function convertSolts(
   _funContext: FunContext,
   _slotValue?: object, //todo 将来变成多个插槽变量的时候需要使用一个对象+参数的形式
 ) {
-  const _props = convertProps(renderDataTree, _argsContext, _funContext)
-  renderDataTree._props = _props
-  const _children = renderDataTree.children
-  for (const key in _children) {
-    let slotInfoArr = _children[key] as (RenderDataTree | string)[]
+  convertProps(renderDataTree, _argsContext, _funContext)
+
+  const children = renderDataTree.children
+  for (const key in children) {
+    let slotInfoArr = children[key] as (RenderDataTree | string)[]
     if (key == '_ctx') {
       continue
     }
@@ -232,7 +239,7 @@ function convertSolts(
       return slotInfoProxyArr //返回结果
     }
     fun.data = slotInfoArr
-    _children[key] = new Proxy(fun, {})
+    children[key] = new Proxy(fun, {})
   }
 }
 
