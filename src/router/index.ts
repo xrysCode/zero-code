@@ -13,8 +13,14 @@ const router = createRouter({
       path: '/test',
       name: 'test',
       // component: () => import('../components/Test.vue'),
+      component: () => import('../components/Test.vue'),
+    },
+    {
+      path: '/test2',
+      name: 'test2',
+      // component: () => import('../components/Test.vue'),
       component: () =>
-        import('../views/pageDesign/componentDesc/ElTableEdit.vue'),
+        import('../views/page_design/component-desc/el-table-edit.vue'),
     },
     {
       path: '/system',
@@ -27,12 +33,12 @@ const router = createRouter({
         {
           path: 'pageDesign',
           name: 'pageDesign',
-          component: () => import('../views/pageDesign/PageDesign.vue'),
+          component: () => import('../views/page_design/page-design.vue'),
         },
         {
           path: 'designArea',
           name: 'designArea',
-          component: () => import('../views/pageDesign/DesignAreaPortal.vue'),
+          component: () => import('../views/page_design/render-modeler.vue'),
         },
       ],
     },

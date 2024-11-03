@@ -1,18 +1,19 @@
-// import axios from 'axios';
-// { AxiosRequestConfig }
 import axios from 'axios'
-// const axios = require('axios')
-
-// const instance = axios.create({
-//   baseURL: 'http://localhost/api/',
-//   timeout: 1000,
-//   headers: { 'X-Custom-Header': 'foobar' },
-// })
 
 axios.defaults.baseURL = '/api'
 // axios.defaults.headers.common['Authorization'] = AUTH_TOKEN
 // axios.defaults.headers.post['Content-Type'] =
 //   'application/x-www-form-urlencoded'
+// declare module 'axios' {
+//   export interface AxiosResponse<T = any> {
+//     data: T
+//   }
+// }
+
+// const instance: AxiosInstance = axios.create({
+//   baseURL: '/api',
+// })
+
 // axios.interceptors.request.use(
 //   function (config) {
 //     // Do something before request is sent
@@ -24,18 +25,13 @@ axios.defaults.baseURL = '/api'
 //   },
 // )
 
-// Add a response interceptor
 axios.interceptors.response.use(
-  function (response) {
-    // Any status code that lie within the range of 2xx cause this function to trigger
-    // Do something with response data
-    if (response.status >= 200 && response.status < 300) {
-      return response.data
-    }
-    console.error('调用错误', response)
-    return Promise.reject('调用错误')
+  response => {
+    // if (response.status >= 200 && response.status < 300) {
+    return response //.data
+    // return Promise.reject('调用错误')
   },
-  function (error) {
+  error => {
     // Any status codes that falls outside the range of 2xx cause this function to trigger
     // Do something with response error
     return Promise.reject(error)

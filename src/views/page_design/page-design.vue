@@ -1,11 +1,6 @@
 <template>
   <el-container style="height: 100svh">
-    <el-aside class="aside"
-      ><LeftOptions
-        @dragstart-handler="dragstartHandler"
-        @dragend-handler="dragendHandler"
-      ></LeftOptions
-    ></el-aside>
+    <el-aside class="aside"><LeftOptions></LeftOptions></el-aside>
     <el-container>
       <el-header><TopOptions></TopOptions></el-header>
       <el-main>
@@ -21,20 +16,10 @@
             }
           "
         ></iframe>
-        <!-- <DesignArea></DesignArea> -->
-        <!-- <div   @dragover="dragoverHandler"
-          id="designPanel"
-          @drop="dropHandler($event)"
-          @dragover="dragoverHandler($event)"
-          @dragleave="dragleaveHandler($event)"
-        > -->
-        <!-- 请从左侧列表中选择一个组件, 然后用鼠标拖动组件放置于此处。 -->
-        <!-- </div> -->
       </el-main>
     </el-container>
 
     <el-aside class="aside">
-      <!-- <RightOptions v-model="activeRanderData"></RightOptions> -->
       <component
         v-if="activeRanderData"
         :is="activeComponent"
@@ -49,10 +34,9 @@
 </template>
 
 <script lang="ts" setup>
-import LeftOptions from './LeftOptions.vue'
-import RightOptions from './RightOptions.vue'
-import TopOptions from './TopOptions.vue'
-import DesignArea from './DesignAreaPortal.vue'
+import LeftOptions from './left-options.vue'
+// import RightOptions from './RightOptions.vue'
+import TopOptions from './top-options.vue'
 import {
   defineComponent,
   useTemplateRef,
@@ -64,29 +48,33 @@ import {
 import type { DefineComponent } from 'vue'
 import * as defaultData from './default-init-data'
 import type { RenderDataTree } from './default-init-data'
+// import { getDesignUniqueId } from '@/api/design-api'
 
-const components = import.meta.glob('./componentDesc/*.vue')
+// 所有右侧的编辑组件
+const rightEditComponents = import.meta.glob('./component-desc/*.vue')
 const componentObj = {}
-for (const path in components) {
-  const componentName = path
-    .replace(/.+\/(\w+)\.vue/, '$1')
-    .replace(/([A-Z])/g, (match, p1) => '-' + p1.toLowerCase())
-    .substring(1)
-  componentObj[componentName] = components[path]
+for (const path in rightEditComponents) {
+  const componentName = path.replace(/.+\/([a-z-]+)\.vue/, '$1')
+  componentObj[componentName] = rightEditComponents[path]
 }
 
-const data = defaultData.tableDataStr
-const renderDataTree = JSON.parse(data)
+const activeComponent = computed(
+  () => componentObj[activeRanderData.value.tagName + '-edit'],
+)
+//完整的树形图 通过最后消息去获取结果
 
-// const designIframe = useTemplateRef('designIframe')
-// onMounted(() => {
-//   const el = designIframe.value as HTMLIFrameElement
-// })
+//激活的树形图
+// const activeRenderDataTree = renderDataTree
+
+const designIframe = useTemplateRef('designIframe')
+onMounted(() => {
+  //完成渲染后，将请求接口的数据传递给渲染器
+  const el = designIframe.value as HTMLIFrameElement
+  el.currentW
+})
 
 const activeRanderData = ref<RenderDataTree>()
-const activeComponent = computed(
-  () => componentObj[renderDataTree.tagName + '-edit'],
-)
+
 window.addEventListener(
   'message',
   messageEvent => {
@@ -94,6 +82,7 @@ window.addEventListener(
       return
     }
     activeRanderData.value = JSON.parse(messageEvent.data)
+    console.log('外部收到的数据', activeRanderData.value)
   },
   false,
 )
@@ -106,20 +95,13 @@ window.addEventListener(
 //   // metadata: null,
 //   // designUrl: { type: String, default: 'http://localhost:5173/?iframe=true' },
 // })
-const changeData = () => {}
+// const changeData = () => {}
 
-function dragstartHandler(ev: DragEvent, componentType: string) {
-  console.log('开始', ev, componentType)
-  // ev.dataTransfer!.setData('text/plain', componentType)
-  // ev.dataTransfer.dropEffect = 'move'
-  // this.$el.querySelector('#designPanel').style.zIndex = 1
-  // this.$el.querySelector('#designPanelIframe').style.zIndex = -1
-}
-function dragendHandler(ev: DragEvent, componentType: string) {
-  console.log('拖拽结束', ev)
-  // this.$el.querySelector('#designPanel').style.zIndex = -1
-  // this.$el.querySelector('#designPanelIframe').style.zIndex = 1
-}
+// function dragendHandler(ev: DragEvent, componentType: string) {
+//   console.log('拖拽结束', ev)
+//   // this.$el.querySelector('#designPanel').style.zIndex = -1
+//   // this.$el.querySelector('#designPanelIframe').style.zIndex = 1
+// }
 //     /////////////////////////////////////////////
 // function dragoverHandler(ev: DragEvent) {
 //   // debugger

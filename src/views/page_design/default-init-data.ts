@@ -1,11 +1,12 @@
 import type {
   /*Slot, Slots,*/ VNode,
   DefineComponent,
+  Component,
   Reactive,
   Ref,
 } from 'vue'
 import { useObj2StrJson } from './render-design-utils'
-import RenderModeler from './RenderModeler.vue'
+import RenderModeler from './render-modeler.vue'
 
 // type Children = string | number | boolean | VNode | null | Children[]
 // type Slot = () => Children
@@ -16,7 +17,12 @@ export enum ComponentType {
   card = 'card',
   table = 'table',
 }
-
+export interface ComponentInfo {
+  icon: Component
+  showContent: string
+  desc: string //功能简述
+  dataRender: () => RenderDataTree
+}
 /**
  * 两种方式
  * 1、用div包裹设计要数，好处布局方便，缺点，子元素可能需要很小的宽度，但是父元素占了整行,拖动大小识别传递给子困难
@@ -24,7 +30,7 @@ export enum ComponentType {
  */
 //组合组件和插槽都用div包裹。以便产生线框
 export interface RenderDataTree {
-  id: string
+  id?: string
   // type?: ComponentType //类型用来打开什么类型的编辑器 对于渲染没有用   tagName来代替这个值
   //当前的上下文环境用来初始化函数及各种响应式数据，以便形成闭包,同时使用渲染组件特点来初始化他
   context?: {
@@ -36,7 +42,8 @@ export interface RenderDataTree {
   tagName: string
   props?: { [key: string]: string | object | boolean } //这里可能有函数需要初始化，函数key全部是@开头，后面编译后变成on开头，value为_context中的'函数的引用'名
   _props?: { [key: string]: string | object } //内部转换后的props 用于渲染端，无需填写，自动转换
-  children?: { [key: string]: (RenderDataTree | string)[] | (() => VNode[]) } //插槽渲染数据说明,代理转换为渲染函数 插槽参数统一为scope不支持解构 字符串取值为{{scope.row.xxx}} 多插槽嵌套参数的暂时无
+  //插槽渲染数据说明,代理转换为渲染函数 插槽参数统一为scope不支持解构 字符串取值为{{scope.row.xxx}} 多插槽嵌套参数的只有最近的一个有效
+  children?: { [key: string]: (RenderDataTree | string)[] | (() => VNode[]) }
   // _children?: { [key: string]: () => VNode[] }
   interceptFlag?: boolean
   _parent?: RenderDataTree
@@ -51,7 +58,10 @@ export interface ArgsContext {
 export interface FunContext {
   [key: string]: string | ((...args: []) => void)
 }
-
+// export interface RenderDataMessage {
+//   completeRanderData: RenderDataTree
+//   activeRenderData: RenderDataTree
+// }
 //todo 写一个转换器用来组合数据
 const formData: RenderDataTree = {
   type: ComponentType.card,
